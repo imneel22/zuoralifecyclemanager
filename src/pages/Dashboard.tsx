@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockImplementations } from '@/data/mockData';
 import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
 import { AlertTriangle, CheckCircle2, Clock, FolderKanban } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const totalProjects = mockImplementations.length;
   const healthyProjects = mockImplementations.filter(impl => impl.healthScore.overall >= 80).length;
   const atRiskProjects = mockImplementations.filter(impl => impl.healthScore.overall >= 60 && impl.healthScore.overall < 80).length;
@@ -26,7 +28,10 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card>
+            <Card 
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => navigate('/projects')}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
                 <FolderKanban className="h-4 w-4 text-muted-foreground" />
@@ -37,7 +42,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => navigate('/projects?filter=healthy')}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Healthy</CardTitle>
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -48,7 +56,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => navigate('/projects?filter=at-risk')}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">At Risk</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -81,7 +92,11 @@ export default function Dashboard() {
                   .filter(impl => impl.healthScore.overall < 80)
                   .slice(0, 4)
                   .map(impl => (
-                    <div key={impl.id} className="flex items-center justify-between">
+                    <div 
+                      key={impl.id} 
+                      className="flex items-center justify-between p-2 -mx-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50"
+                      onClick={() => navigate(`/implementation/${impl.id}`)}
+                    >
                       <div>
                         <p className="font-medium">{impl.customerName}</p>
                         <p className="text-sm text-muted-foreground">{impl.daysToGoLive} days to go-live</p>
@@ -101,7 +116,11 @@ export default function Dashboard() {
                   .sort((a, b) => a.daysToGoLive - b.daysToGoLive)
                   .slice(0, 4)
                   .map(impl => (
-                    <div key={impl.id} className="flex items-center justify-between">
+                    <div 
+                      key={impl.id} 
+                      className="flex items-center justify-between p-2 -mx-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50"
+                      onClick={() => navigate(`/implementation/${impl.id}`)}
+                    >
                       <div>
                         <p className="font-medium">{impl.customerName}</p>
                         <p className="text-sm text-muted-foreground">{impl.industry}</p>

@@ -1,0 +1,267 @@
+import { Implementation, Task, Activity, MigrationFile, FieldMapping, GoLiveMetric, Alert, TeamMember } from '@/types/zlm';
+
+export const mockTeamMembers: TeamMember[] = [
+  { id: '1', name: 'Sarah Chen', role: 'Implementation Lead', email: 'sarah.chen@zuora.com' },
+  { id: '2', name: 'Michael Torres', role: 'Technical Consultant', email: 'michael.torres@zuora.com' },
+  { id: '3', name: 'Emily Watson', role: 'Solution Architect', email: 'emily.watson@zuora.com' },
+  { id: '4', name: 'James Kim', role: 'Data Migration Specialist', email: 'james.kim@zuora.com' },
+  { id: '5', name: 'Lisa Park', role: 'QA Engineer', email: 'lisa.park@zuora.com' },
+];
+
+export const mockImplementations: Implementation[] = [
+  {
+    id: '1',
+    customerName: 'Acme Corporation',
+    sfdcOpportunityId: 'OPP-2024-001',
+    targetGoLive: '2024-03-15',
+    currentPhase: 'configuration',
+    healthScore: { overall: 85, timeline: 90, quality: 82, engagement: 83 },
+    daysToGoLive: 45,
+    team: [mockTeamMembers[0], mockTeamMembers[1], mockTeamMembers[2]],
+    industry: 'Technology',
+    productTypes: ['SaaS', 'Usage-Based'],
+    createdAt: '2024-01-15',
+    updatedAt: '2024-02-01',
+  },
+  {
+    id: '2',
+    customerName: 'GlobalTech Industries',
+    sfdcOpportunityId: 'OPP-2024-002',
+    targetGoLive: '2024-04-01',
+    currentPhase: 'migration',
+    healthScore: { overall: 72, timeline: 65, quality: 78, engagement: 73 },
+    daysToGoLive: 62,
+    team: [mockTeamMembers[1], mockTeamMembers[3]],
+    industry: 'Manufacturing',
+    productTypes: ['Subscription', 'Tiered'],
+    createdAt: '2024-01-20',
+    updatedAt: '2024-02-05',
+  },
+  {
+    id: '3',
+    customerName: 'FinServ Partners',
+    sfdcOpportunityId: 'OPP-2024-003',
+    targetGoLive: '2024-02-28',
+    currentPhase: 'testing',
+    healthScore: { overall: 92, timeline: 95, quality: 90, engagement: 91 },
+    daysToGoLive: 30,
+    team: [mockTeamMembers[0], mockTeamMembers[4]],
+    industry: 'Financial Services',
+    productTypes: ['Subscription'],
+    createdAt: '2024-01-10',
+    updatedAt: '2024-02-08',
+  },
+  {
+    id: '4',
+    customerName: 'MediaStream Inc',
+    sfdcOpportunityId: 'OPP-2024-004',
+    targetGoLive: '2024-05-15',
+    currentPhase: 'discovery',
+    healthScore: { overall: 58, timeline: 45, quality: 68, engagement: 61 },
+    daysToGoLive: 106,
+    team: [mockTeamMembers[2], mockTeamMembers[3]],
+    industry: 'Media & Entertainment',
+    productTypes: ['Usage-Based', 'Freemium'],
+    createdAt: '2024-02-01',
+    updatedAt: '2024-02-10',
+  },
+  {
+    id: '5',
+    customerName: 'HealthPlus Systems',
+    sfdcOpportunityId: 'OPP-2024-005',
+    targetGoLive: '2024-03-30',
+    currentPhase: 'golive',
+    healthScore: { overall: 95, timeline: 98, quality: 93, engagement: 94 },
+    daysToGoLive: 5,
+    team: [mockTeamMembers[0], mockTeamMembers[1], mockTeamMembers[4]],
+    industry: 'Healthcare',
+    productTypes: ['Subscription', 'Per-Unit'],
+    createdAt: '2023-12-01',
+    updatedAt: '2024-02-12',
+  },
+];
+
+export const mockTasks: Task[] = [
+  {
+    id: '1',
+    title: 'Configure Product Catalog',
+    description: 'Set up initial product structure with rate plans and charges',
+    status: 'in_progress',
+    priority: 'high',
+    assignee: mockTeamMembers[1],
+    dueDate: '2024-02-15',
+    phase: 'configuration',
+  },
+  {
+    id: '2',
+    title: 'Review Data Mapping',
+    description: 'Validate automated field mappings for customer data migration',
+    status: 'pending',
+    priority: 'high',
+    assignee: mockTeamMembers[3],
+    dueDate: '2024-02-18',
+    phase: 'migration',
+  },
+  {
+    id: '3',
+    title: 'Set Up Payment Gateway',
+    description: 'Configure Stripe integration for payment processing',
+    status: 'completed',
+    priority: 'medium',
+    assignee: mockTeamMembers[2],
+    dueDate: '2024-02-10',
+    phase: 'configuration',
+  },
+  {
+    id: '4',
+    title: 'Create Test Scenarios',
+    description: 'Define end-to-end test cases for billing workflows',
+    status: 'pending',
+    priority: 'medium',
+    assignee: mockTeamMembers[4],
+    dueDate: '2024-02-20',
+    phase: 'testing',
+  },
+  {
+    id: '5',
+    title: 'Customer Training Session',
+    description: 'Schedule and prepare training materials for customer team',
+    status: 'pending',
+    priority: 'low',
+    assignee: mockTeamMembers[0],
+    dueDate: '2024-02-25',
+    phase: 'golive',
+  },
+];
+
+export const mockActivities: Activity[] = [
+  {
+    id: '1',
+    type: 'task_completed',
+    title: 'Payment Gateway Configured',
+    description: 'Stripe integration has been successfully set up and tested',
+    user: mockTeamMembers[2],
+    timestamp: '2024-02-10T14:30:00Z',
+  },
+  {
+    id: '2',
+    type: 'phase_changed',
+    title: 'Moved to Configuration Phase',
+    description: 'Implementation has progressed from Discovery to Configuration',
+    user: mockTeamMembers[0],
+    timestamp: '2024-02-08T10:00:00Z',
+  },
+  {
+    id: '3',
+    type: 'comment',
+    title: 'Note Added',
+    description: 'Customer requested additional usage-based pricing options',
+    user: mockTeamMembers[1],
+    timestamp: '2024-02-07T16:45:00Z',
+  },
+  {
+    id: '4',
+    type: 'file_uploaded',
+    title: 'Data File Uploaded',
+    description: 'Customer uploaded subscription data export (2,500 records)',
+    user: mockTeamMembers[3],
+    timestamp: '2024-02-06T11:20:00Z',
+  },
+  {
+    id: '5',
+    type: 'alert',
+    title: 'Timeline Risk Detected',
+    description: 'AI detected potential delay in data migration phase',
+    user: mockTeamMembers[0],
+    timestamp: '2024-02-05T09:00:00Z',
+  },
+];
+
+export const mockMigrationFiles: MigrationFile[] = [
+  { id: '1', name: 'customers_export.csv', type: 'csv', size: 2456000, status: 'validated', recordCount: 5420, errorCount: 12 },
+  { id: '2', name: 'subscriptions_data.xlsx', type: 'xlsx', size: 1890000, status: 'processing', recordCount: 3200 },
+  { id: '3', name: 'payment_methods.csv', type: 'csv', size: 890000, status: 'pending', recordCount: 4100 },
+  { id: '4', name: 'invoices_history.csv', type: 'csv', size: 5670000, status: 'error', recordCount: 12000, errorCount: 156 },
+];
+
+export const mockFieldMappings: FieldMapping[] = [
+  { sourceField: 'customer_id', targetField: 'AccountNumber', confidence: 98, status: 'auto' },
+  { sourceField: 'company_name', targetField: 'AccountName', confidence: 95, status: 'auto' },
+  { sourceField: 'email_address', targetField: 'BillToContact.Email', confidence: 92, status: 'auto' },
+  { sourceField: 'billing_address', targetField: 'BillToContact.Address1', confidence: 78, status: 'manual' },
+  { sourceField: 'subscription_start', targetField: 'Subscription.ContractEffectiveDate', confidence: 88, status: 'auto' },
+  { sourceField: 'plan_type', targetField: 'RatePlan.Name', confidence: 65, status: 'unmapped' },
+  { sourceField: 'monthly_amount', targetField: 'RatePlanCharge.Price', confidence: 85, status: 'auto' },
+  { sourceField: 'payment_term', targetField: 'PaymentTerm', confidence: 72, status: 'manual' },
+];
+
+export const mockGoLiveMetrics: GoLiveMetric[] = [
+  { label: 'Active Subscriptions', value: 1247, change: 12.5, changeType: 'positive' },
+  { label: 'Invoices Generated', value: 892, change: 8.3, changeType: 'positive' },
+  { label: 'Payments Processed', value: 756, change: -2.1, changeType: 'negative', unit: '$' },
+  { label: 'API Latency', value: 145, change: -15.2, changeType: 'positive', unit: 'ms' },
+];
+
+export const mockAlerts: Alert[] = [
+  {
+    id: '1',
+    severity: 'warning',
+    title: 'High API Error Rate',
+    description: 'API error rate has increased to 2.3% in the last hour',
+    recommendation: 'Review recent API calls and check for malformed requests. Consider implementing retry logic.',
+    timestamp: '2024-02-12T15:30:00Z',
+  },
+  {
+    id: '2',
+    severity: 'info',
+    title: 'Subscription Surge Detected',
+    description: '15% increase in new subscriptions compared to yesterday',
+    recommendation: 'Monitor system capacity and ensure billing runs are scheduled appropriately.',
+    timestamp: '2024-02-12T14:00:00Z',
+  },
+  {
+    id: '3',
+    severity: 'error',
+    title: 'Payment Gateway Timeout',
+    description: '3 payment transactions failed due to gateway timeout',
+    recommendation: 'Check payment gateway status and retry failed transactions.',
+    timestamp: '2024-02-12T13:15:00Z',
+  },
+];
+
+export const industries = [
+  'Technology',
+  'Financial Services',
+  'Healthcare',
+  'Manufacturing',
+  'Media & Entertainment',
+  'Telecommunications',
+  'Retail',
+  'Education',
+];
+
+export const productTypes = [
+  'Subscription',
+  'Usage-Based',
+  'Tiered',
+  'Per-Unit',
+  'Freemium',
+  'One-Time',
+];
+
+export const chargingMethods = [
+  'Flat Fee',
+  'Per Unit',
+  'Tiered Pricing',
+  'Volume Pricing',
+  'Overage',
+];
+
+export const integrations = [
+  { id: 'salesforce', name: 'Salesforce CRM', category: 'CRM' },
+  { id: 'netsuite', name: 'NetSuite ERP', category: 'ERP' },
+  { id: 'stripe', name: 'Stripe', category: 'Payment Gateway' },
+  { id: 'braintree', name: 'Braintree', category: 'Payment Gateway' },
+  { id: 'avalara', name: 'Avalara', category: 'Tax' },
+  { id: 'slack', name: 'Slack', category: 'Communication' },
+];

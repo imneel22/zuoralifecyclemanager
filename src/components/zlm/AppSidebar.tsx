@@ -23,8 +23,8 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, path: '/dashboard' },
-  { id: 'jobs', label: 'Jobs', icon: Briefcase, path: '/dashboard' },
+  { id: 'projects', label: 'Projects', icon: FolderKanban, path: '/projects' },
+  { id: 'jobs', label: 'Jobs', icon: Briefcase, path: '/jobs' },
   { id: 'products', label: 'Product Catalog', icon: Package, path: '/product-catalog' },
 ];
 
@@ -41,6 +41,7 @@ export function AppSidebar() {
 
   const isActive = (path: string, id: string) => {
     if (id === 'dashboard' && location.pathname === '/dashboard') return true;
+    if (id === 'projects' && location.pathname === '/projects') return true;
     if (id === 'products' && location.pathname === '/product-catalog') return true;
     return false;
   };

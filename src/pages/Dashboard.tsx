@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Filter, SortAsc } from 'lucide-react';
+import { Plus, Filter, SortAsc, Calendar, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Header } from '@/components/zlm/Header';
-import { ImplementationCard } from '@/components/zlm/ImplementationCard';
+import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
+import { PhaseBadge } from '@/components/zlm/PhaseBadge';
+import { TeamAvatars } from '@/components/zlm/TeamAvatars';
 import { mockImplementations } from '@/data/mockData';
-import { Phase, HealthStatus } from '@/types/zlm';
+import { HealthStatus } from '@/types/zlm';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -110,14 +113,53 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredImplementations.map((implementation) => (
-            <ImplementationCard
-              key={implementation.id}
-              implementation={implementation}
-              onClick={() => navigate(`/implementation/${implementation.id}`)}
-            />
-          ))}
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="font-semibold">Customer</TableHead>
+                <TableHead className="font-semibold">Phase</TableHead>
+                <TableHead className="font-semibold">Health</TableHead>
+                <TableHead className="font-semibold">Days to Go-Live</TableHead>
+                <TableHead className="font-semibold">Team</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredImplementations.map((impl) => (
+                <TableRow 
+                  key={impl.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate(`/implementation/${impl.id}`)}
+                >
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-foreground">{impl.customerName}</div>
+                      <div className="text-sm text-muted-foreground">{impl.industry}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <PhaseBadge phase={impl.currentPhase} />
+                  </TableCell>
+                  <TableCell>
+                    <HealthScoreRing score={impl.healthScore.overall} size="sm" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>{impl.daysToGoLive} days</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <TeamAvatars team={impl.team} max={3} />
+                  </TableCell>
+                  <TableCell>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
 
         {filteredImplementations.length === 0 && (

@@ -1,183 +1,120 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Filter, SortAsc, Calendar, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Header } from '@/components/zlm/Header';
 import { AppSidebar } from '@/components/zlm/AppSidebar';
-import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
-import { PhaseBadge } from '@/components/zlm/PhaseBadge';
-import { TeamAvatars } from '@/components/zlm/TeamAvatars';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockImplementations } from '@/data/mockData';
-import { HealthStatus } from '@/types/zlm';
+import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
+import { AlertTriangle, CheckCircle2, Clock, FolderKanban } from 'lucide-react';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [phaseFilter, setPhaseFilter] = useState<string>('all');
-  const [healthFilter, setHealthFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('daysToGoLive');
-
-  const getHealthStatus = (score: number): HealthStatus => {
-    if (score >= 80) return 'green';
-    if (score >= 60) return 'amber';
-    return 'red';
-  };
-
-  const filteredImplementations = mockImplementations
-    .filter((impl) => {
-      const matchesSearch = impl.customerName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPhase = phaseFilter === 'all' || impl.currentPhase === phaseFilter;
-      const matchesHealth = healthFilter === 'all' || getHealthStatus(impl.healthScore.overall) === healthFilter;
-      return matchesSearch && matchesPhase && matchesHealth;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'daysToGoLive':
-          return a.daysToGoLive - b.daysToGoLive;
-        case 'health':
-          return b.healthScore.overall - a.healthScore.overall;
-        case 'name':
-          return a.customerName.localeCompare(b.customerName);
-        default:
-          return 0;
-      }
-    });
+  const totalProjects = mockImplementations.length;
+  const healthyProjects = mockImplementations.filter(impl => impl.healthScore.overall >= 80).length;
+  const atRiskProjects = mockImplementations.filter(impl => impl.healthScore.overall >= 60 && impl.healthScore.overall < 80).length;
+  const criticalProjects = mockImplementations.filter(impl => impl.healthScore.overall < 60).length;
+  const avgDaysToGoLive = Math.round(mockImplementations.reduce((sum, impl) => sum + impl.daysToGoLive, 0) / totalProjects);
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        searchValue={searchQuery} 
-        onSearchChange={setSearchQuery} 
-      />
+      <Header />
       
       <div className="flex">
         <AppSidebar />
         
         <main className="flex-1 p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">My Implementations</h1>
-              <p className="text-muted-foreground">
-                {filteredImplementations.length} active implementations
-              </p>
-            </div>
-            
-            <Button onClick={() => navigate('/create-implementation')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Implementation
-            </Button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Overview of all implementations</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-muted/30 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Filters:</span>
-            </div>
-            
-            <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-              <SelectTrigger className="w-40 bg-background">
-                <SelectValue placeholder="Phase" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Phases</SelectItem>
-                <SelectItem value="discovery">Discovery</SelectItem>
-                <SelectItem value="configuration">Configuration</SelectItem>
-                <SelectItem value="migration">Migration</SelectItem>
-                <SelectItem value="testing">Testing</SelectItem>
-                <SelectItem value="golive">Go-Live</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={healthFilter} onValueChange={setHealthFilter}>
-              <SelectTrigger className="w-40 bg-background">
-                <SelectValue placeholder="Health" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Health</SelectItem>
-                <SelectItem value="green">Healthy</SelectItem>
-                <SelectItem value="amber">At Risk</SelectItem>
-                <SelectItem value="red">Critical</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+                <FolderKanban className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalProjects}</div>
+                <p className="text-xs text-muted-foreground">Active implementations</p>
+              </CardContent>
+            </Card>
 
-            <div className="flex items-center gap-2 ml-auto">
-              <SortAsc className="h-4 w-4 text-muted-foreground" />
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40 bg-background">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daysToGoLive">Days to Go-Live</SelectItem>
-                  <SelectItem value="health">Health Score</SelectItem>
-                  <SelectItem value="name">Customer Name</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Healthy</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{healthyProjects}</div>
+                <p className="text-xs text-muted-foreground">On track projects</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">At Risk</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-amber-600">{atRiskProjects}</div>
+                <p className="text-xs text-muted-foreground">Need attention</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Days to Go-Live</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{avgDaysToGoLive}</div>
+                <p className="text-xs text-muted-foreground">Across all projects</p>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Customer</TableHead>
-                  <TableHead className="font-semibold">Phase</TableHead>
-                  <TableHead className="font-semibold">Health</TableHead>
-                  <TableHead className="font-semibold">Days to Go-Live</TableHead>
-                  <TableHead className="font-semibold">Team</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredImplementations.map((impl) => (
-                  <TableRow 
-                    key={impl.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigate(`/implementation/${impl.id}`)}
-                  >
-                    <TableCell>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Projects Requiring Attention</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockImplementations
+                  .filter(impl => impl.healthScore.overall < 80)
+                  .slice(0, 4)
+                  .map(impl => (
+                    <div key={impl.id} className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-foreground">{impl.customerName}</div>
-                        <div className="text-sm text-muted-foreground">{impl.industry}</div>
+                        <p className="font-medium">{impl.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{impl.daysToGoLive} days to go-live</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <PhaseBadge phase={impl.currentPhase} />
-                    </TableCell>
-                    <TableCell>
                       <HealthScoreRing score={impl.healthScore.overall} size="sm" />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>{impl.daysToGoLive} days</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TeamAvatars team={impl.team} max={3} />
-                    </TableCell>
-                    <TableCell>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
 
-          {filteredImplementations.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No implementations found matching your filters.</p>
-              <Button variant="outline" className="mt-4" onClick={() => {
-                setPhaseFilter('all');
-                setHealthFilter('all');
-                setSearchQuery('');
-              }}>
-                Clear Filters
-              </Button>
-            </div>
-          )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Go-Lives</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockImplementations
+                  .sort((a, b) => a.daysToGoLive - b.daysToGoLive)
+                  .slice(0, 4)
+                  .map(impl => (
+                    <div key={impl.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{impl.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{impl.industry}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{impl.daysToGoLive} days</p>
+                        <p className="text-xs text-muted-foreground">to go-live</p>
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
     </div>

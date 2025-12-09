@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
 import ImplementationDetail from "./pages/ImplementationDetail";
 import CreateImplementation from "./pages/CreateImplementation";
 import ProductCatalog from "./pages/ProductCatalog";
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/implementation/:id" element={<ImplementationDetail />} />
           <Route path="/create-implementation" element={<CreateImplementation />} />
           <Route path="/product-catalog" element={<ProductCatalog />} />

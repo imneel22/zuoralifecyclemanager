@@ -22,6 +22,15 @@ export const mockImplementations: Implementation[] = [
     productTypes: ['SaaS', 'Usage-Based'],
     createdAt: '2024-01-15',
     updatedAt: '2024-02-01',
+    arr: 2500000,
+    businessModel: 'hybrid',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-01-15', endDate: '2024-01-28', status: 'completed' },
+      { phase: 'configuration', startDate: '2024-01-29', status: 'in_progress' },
+      { phase: 'migration', status: 'pending' },
+      { phase: 'testing', status: 'pending' },
+      { phase: 'golive', status: 'pending' },
+    ],
   },
   {
     id: '2',
@@ -36,6 +45,15 @@ export const mockImplementations: Implementation[] = [
     productTypes: ['Subscription', 'Tiered'],
     createdAt: '2024-01-20',
     updatedAt: '2024-02-05',
+    arr: 1800000,
+    businessModel: 'subscription',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-01-20', endDate: '2024-01-30', status: 'completed' },
+      { phase: 'configuration', startDate: '2024-01-31', endDate: '2024-02-10', status: 'completed' },
+      { phase: 'migration', startDate: '2024-02-11', status: 'in_progress' },
+      { phase: 'testing', status: 'pending' },
+      { phase: 'golive', status: 'pending' },
+    ],
   },
   {
     id: '3',
@@ -50,6 +68,15 @@ export const mockImplementations: Implementation[] = [
     productTypes: ['Subscription'],
     createdAt: '2024-01-10',
     updatedAt: '2024-02-08',
+    arr: 5200000,
+    businessModel: 'subscription',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-01-10', endDate: '2024-01-18', status: 'completed' },
+      { phase: 'configuration', startDate: '2024-01-19', endDate: '2024-01-31', status: 'completed' },
+      { phase: 'migration', startDate: '2024-02-01', endDate: '2024-02-12', status: 'completed' },
+      { phase: 'testing', startDate: '2024-02-13', status: 'in_progress' },
+      { phase: 'golive', status: 'pending' },
+    ],
   },
   {
     id: '4',
@@ -64,6 +91,15 @@ export const mockImplementations: Implementation[] = [
     productTypes: ['Usage-Based', 'Freemium'],
     createdAt: '2024-02-01',
     updatedAt: '2024-02-10',
+    arr: 890000,
+    businessModel: 'usage',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-02-01', status: 'in_progress' },
+      { phase: 'configuration', status: 'pending' },
+      { phase: 'migration', status: 'pending' },
+      { phase: 'testing', status: 'pending' },
+      { phase: 'golive', status: 'pending' },
+    ],
   },
   {
     id: '5',
@@ -78,6 +114,15 @@ export const mockImplementations: Implementation[] = [
     productTypes: ['Subscription', 'Per-Unit'],
     createdAt: '2023-12-01',
     updatedAt: '2024-02-12',
+    arr: 3400000,
+    businessModel: 'hybrid',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2023-12-01', endDate: '2023-12-15', status: 'completed' },
+      { phase: 'configuration', startDate: '2023-12-16', endDate: '2024-01-10', status: 'completed' },
+      { phase: 'migration', startDate: '2024-01-11', endDate: '2024-02-05', status: 'completed' },
+      { phase: 'testing', startDate: '2024-02-06', endDate: '2024-02-25', status: 'completed' },
+      { phase: 'golive', startDate: '2024-02-26', status: 'in_progress' },
+    ],
   },
 ];
 

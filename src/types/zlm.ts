@@ -17,6 +17,15 @@ export interface HealthScore {
   engagement: number;
 }
 
+export type BusinessModel = 'subscription' | 'usage' | 'hybrid';
+
+export interface PhaseDate {
+  phase: Phase;
+  startDate?: string;
+  endDate?: string;
+  status: 'completed' | 'in_progress' | 'pending';
+}
+
 export interface Implementation {
   id: string;
   customerName: string;
@@ -30,6 +39,9 @@ export interface Implementation {
   productTypes: string[];
   createdAt: string;
   updatedAt: string;
+  arr?: number;
+  businessModel?: BusinessModel;
+  phaseDates?: PhaseDate[];
 }
 
 export interface Task {

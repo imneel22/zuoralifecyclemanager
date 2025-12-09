@@ -1,8 +1,9 @@
-import { Calendar, FileText, Settings, Database, ArrowRight } from 'lucide-react';
+import { Calendar, FileText, Settings, Database, CheckCircle2, Clock, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Implementation, Phase } from '@/types/zlm';
+import { Badge } from '@/components/ui/badge';
+import { Implementation, Phase, BusinessModel } from '@/types/zlm';
 import { TeamAvatars } from '../TeamAvatars';
 import { AIRecommendation } from '../AIRecommendation';
 import { useNavigate } from 'react-router-dom';
@@ -19,14 +20,97 @@ const phases: { id: Phase; label: string }[] = [
   { id: 'golive', label: 'Go-Live' },
 ];
 
+const businessModelLabels: Record<BusinessModel, string> = {
+  subscription: 'Subscription',
+  usage: 'Usage-Based',
+  hybrid: 'Hybrid',
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 export function OverviewTab({ implementation }: OverviewTabProps) {
   const navigate = useNavigate();
   const currentPhaseIndex = phases.findIndex((p) => p.id === implementation.currentPhase);
   const progress = ((currentPhaseIndex + 1) / phases.length) * 100;
 
+  const getPhaseDate = (phaseId: Phase) => {
+    return implementation.phaseDates?.find((p) => p.phase === phaseId);
+  };
+
+  const getStatusIcon = (status: 'completed' | 'in_progress' | 'pending') => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'in_progress':
+        return <Clock className="h-4 w-4 text-primary animate-pulse" />;
+      case 'pending':
+        return <Circle className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
+        {/* Customer Information - Moved to top */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Customer Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <dt className="text-sm text-muted-foreground">SFDC Opportunity ID</dt>
+                <dd className="font-medium">{implementation.sfdcOpportunityId}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Industry</dt>
+                <dd className="font-medium">{implementation.industry}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">ARR</dt>
+                <dd className="font-medium text-green-600">
+                  {implementation.arr ? formatCurrency(implementation.arr) : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Business Model</dt>
+                <dd>
+                  <Badge variant={
+                    implementation.businessModel === 'hybrid' ? 'default' :
+                    implementation.businessModel === 'subscription' ? 'secondary' : 'outline'
+                  }>
+                    {implementation.businessModel ? businessModelLabels[implementation.businessModel] : '—'}
+                  </Badge>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Target Go-Live</dt>
+                <dd className="font-medium">{formatDate(implementation.targetGoLive)}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Product Types</dt>
+                <dd className="font-medium">{implementation.productTypes.join(', ')}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
         {/* AI Recommendation */}
         <AIRecommendation
           title="AI Insight"
@@ -34,35 +118,67 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
           onAccept={() => console.log('Accepted recommendation')}
         />
 
-        {/* Timeline */}
+        {/* Detailed Timeline */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Implementation Timeline</CardTitle>
             <CardDescription>Current phase: {phases[currentPhaseIndex]?.label}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Progress value={progress} className="h-2" />
-              <div className="flex justify-between">
-                {phases.map((phase, index) => (
-                  <div
-                    key={phase.id}
-                    className={`flex flex-col items-center ${
-                      index <= currentPhaseIndex ? 'text-primary' : 'text-muted-foreground'
-                    }`}
-                  >
-                    <div
-                      className={`h-3 w-3 rounded-full mb-1 ${
-                        index < currentPhaseIndex
-                          ? 'bg-green-500'
-                          : index === currentPhaseIndex
-                          ? 'bg-primary'
-                          : 'bg-muted'
+              
+              {/* Detailed Phase Timeline */}
+              <div className="space-y-3">
+                {phases.map((phase) => {
+                  const phaseDate = getPhaseDate(phase.id);
+                  const status = phaseDate?.status || 'pending';
+                  
+                  return (
+                    <div 
+                      key={phase.id} 
+                      className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
+                        status === 'in_progress' ? 'bg-primary/5 border border-primary/20' : 
+                        status === 'completed' ? 'bg-muted/50' : ''
                       }`}
-                    />
-                    <span className="text-xs text-center hidden sm:block">{phase.label}</span>
-                  </div>
-                ))}
+                    >
+                      <div className="mt-0.5">
+                        {getStatusIcon(status)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`font-medium ${
+                            status === 'in_progress' ? 'text-primary' : 
+                            status === 'completed' ? 'text-foreground' : 'text-muted-foreground'
+                          }`}>
+                            {phase.label}
+                          </span>
+                          <Badge variant={
+                            status === 'completed' ? 'default' :
+                            status === 'in_progress' ? 'secondary' : 'outline'
+                          } className="text-xs">
+                            {status === 'completed' ? 'Completed' : 
+                             status === 'in_progress' ? 'In Progress' : 'Pending'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                          {phaseDate?.startDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Started: {formatDate(phaseDate.startDate)}
+                            </span>
+                          )}
+                          {phaseDate?.endDate && (
+                            <span className="flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Ended: {formatDate(phaseDate.endDate)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </CardContent>
@@ -97,33 +213,6 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
                 </div>
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Customer Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Customer Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm text-muted-foreground">SFDC Opportunity ID</dt>
-                <dd className="font-medium">{implementation.sfdcOpportunityId}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted-foreground">Industry</dt>
-                <dd className="font-medium">{implementation.industry}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted-foreground">Target Go-Live</dt>
-                <dd className="font-medium">{new Date(implementation.targetGoLive).toLocaleDateString()}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted-foreground">Product Types</dt>
-                <dd className="font-medium">{implementation.productTypes.join(', ')}</dd>
-              </div>
-            </dl>
           </CardContent>
         </Card>
       </div>
@@ -163,11 +252,11 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Kickoff</span>
-                <span className="text-sm font-medium">{new Date(implementation.createdAt).toLocaleDateString()}</span>
+                <span className="text-sm font-medium">{formatDate(implementation.createdAt)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Target Go-Live</span>
-                <span className="text-sm font-medium">{new Date(implementation.targetGoLive).toLocaleDateString()}</span>
+                <span className="text-sm font-medium">{formatDate(implementation.targetGoLive)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Days Remaining</span>

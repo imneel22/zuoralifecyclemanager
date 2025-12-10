@@ -67,7 +67,14 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
-        {/* Customer Information - Moved to top */}
+        {/* AI Recommendation - At the very top */}
+        <AIRecommendation
+          title="AI Insight"
+          description="Based on similar implementations, consider scheduling the data migration review earlier. Companies in the Technology sector typically need 2 extra days for API integration testing."
+          onAccept={() => console.log('Accepted recommendation')}
+        />
+
+        {/* Customer Information */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Customer Information</CardTitle>
@@ -110,13 +117,6 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
             </dl>
           </CardContent>
         </Card>
-
-        {/* AI Recommendation */}
-        <AIRecommendation
-          title="AI Insight"
-          description="Based on similar implementations, consider scheduling the data migration review earlier. Companies in the Technology sector typically need 2 extra days for API integration testing."
-          onAccept={() => console.log('Accepted recommendation')}
-        />
 
         {/* Detailed Timeline */}
         <Card>

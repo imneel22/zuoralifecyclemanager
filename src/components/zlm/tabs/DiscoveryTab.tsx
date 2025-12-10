@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,6 +88,8 @@ const sectionConfig: Record<RequirementSection, { label: string; className: stri
 };
 
 export function DiscoveryTab() {
+  const navigate = useNavigate();
+  const { id: implementationId } = useParams();
   const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
   const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
@@ -266,7 +269,11 @@ export function DiscoveryTab() {
                 </TableHeader>
                 <TableBody>
                   {requirements.map((req) => (
-                    <TableRow key={req.id}>
+                    <TableRow 
+                      key={req.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/implementation/${implementationId}/requirement/${req.reqId}`)}
+                    >
                       <TableCell className="font-mono text-sm font-medium">{req.reqId}</TableCell>
                       <TableCell>
                         <Badge className={sectionConfig[req.section].className}>
@@ -289,7 +296,10 @@ export function DiscoveryTab() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => removeRequirement(req.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeRequirement(req.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                         </Button>

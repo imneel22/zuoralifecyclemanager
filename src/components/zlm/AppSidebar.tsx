@@ -4,7 +4,6 @@ import {
   FolderKanban, 
   Users, 
   Briefcase, 
-  Package, 
   Settings, 
   HelpCircle,
   ChevronLeft,
@@ -25,7 +24,6 @@ const mainNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { id: 'projects', label: 'Projects', icon: FolderKanban, path: '/projects' },
   { id: 'jobs', label: 'Jobs', icon: Briefcase, path: '/jobs' },
-  { id: 'products', label: 'Product Catalog', icon: Package, path: '/product-catalog' },
 ];
 
 const secondaryNavItems: NavItem[] = [
@@ -42,7 +40,6 @@ export function AppSidebar() {
   const isActive = (path: string, id: string) => {
     if (id === 'dashboard' && location.pathname === '/dashboard') return true;
     if (id === 'projects' && location.pathname === '/projects') return true;
-    if (id === 'products' && location.pathname === '/product-catalog') return true;
     return false;
   };
 

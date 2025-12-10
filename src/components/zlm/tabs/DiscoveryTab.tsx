@@ -268,14 +268,14 @@ export function DiscoveryTab() {
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Parent Requirement</label>
                   <Select
-                    value={newRequirement.parentRequirement}
-                    onValueChange={(v) => setNewRequirement({ ...newRequirement, parentRequirement: v })}
+                    value={newRequirement.parentRequirement || "none"}
+                    onValueChange={(v) => setNewRequirement({ ...newRequirement, parentRequirement: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="None" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {requirements.map((req) => (
                         <SelectItem key={req.id} value={req.reqId}>
                           {req.reqId} - {req.description.slice(0, 30)}...

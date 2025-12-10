@@ -32,12 +32,12 @@ export function AIRecommendation({ title, description, onAccept, onDismiss, clas
       </Button>
       
       <div className="flex items-start gap-3 pr-8">
-        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-secondary" />
+        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
+          <Sparkles className="h-5 w-5 text-white" />
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm text-secondary mb-1">{title}</h4>
+          <h4 className="font-semibold text-base bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-1">{title}</h4>
           <p className="text-sm text-foreground/80">{description}</p>
           
           <div className="flex items-center gap-3 mt-3">

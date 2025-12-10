@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, CheckCircle2, Hash } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type RequirementStatus = 'draft' | 'completed';
@@ -252,36 +252,52 @@ export function DiscoveryTab() {
               <p className="text-sm">Click "Add Requirement" to get started</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {requirements.map((req) => (
-                <div
-                  key={req.id}
-                  className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors group"
-                >
-                  <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-                    <Hash className="h-4 w-4" />
-                    <span className="text-sm font-mono font-medium">{req.reqId}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <Badge className={sectionConfig[req.section].className}>{sectionConfig[req.section].label}</Badge>
-                      <Badge className={statusConfig[req.status].className}>{statusConfig[req.status].label}</Badge>
-                      <Badge className={classificationConfig[req.classification].className}>
-                        {classificationConfig[req.classification].label}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{req.description}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                    onClick={() => removeRequirement(req.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead className="w-[140px]">Section</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[80px]">Classification</TableHead>
+                    <TableHead className="w-[60px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requirements.map((req) => (
+                    <TableRow key={req.id}>
+                      <TableCell className="font-mono text-sm font-medium">{req.reqId}</TableCell>
+                      <TableCell>
+                        <Badge className={sectionConfig[req.section].className}>
+                          {sectionConfig[req.section].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{req.description}</TableCell>
+                      <TableCell>
+                        <Badge className={statusConfig[req.status].className}>
+                          {statusConfig[req.status].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={classificationConfig[req.classification].className}>
+                          {classificationConfig[req.classification].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeRequirement(req.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

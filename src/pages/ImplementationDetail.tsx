@@ -37,7 +37,7 @@ export default function ImplementationDetail() {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Building2 },
-    { id: 'tasks', label: 'Requirement Gathering', icon: ClipboardList },
+    { id: 'tasks', label: 'Discovery', icon: ClipboardList },
     { id: 'configuration', label: 'Configuration', icon: Settings },
     { id: 'migration', label: 'Data Migration', icon: Database },
     { id: 'testing', label: 'Testing', icon: TestTube },

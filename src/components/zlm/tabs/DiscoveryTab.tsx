@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -14,11 +15,14 @@ type RequirementSection = 'price_to_offer' | 'lead_to_offer' | 'order_to_cash' |
 
 interface Requirement {
   id: string;
-  reqId: string; // Unique requirement ID like REQ-001
+  reqId: string;
   section: RequirementSection;
   description: string;
   status: RequirementStatus;
   classification: RequirementClassification;
+  owner: string;
+  parentRequirement: string | null;
+  tags: string[];
 }
 
 interface Artifact {
@@ -37,11 +41,13 @@ const sections: { value: RequirementSection; label: string }[] = [
   { value: 'general', label: 'General' },
 ];
 
+const owners = ['Sarah Johnson', 'John Smith', 'Emily Chen', 'Michael Brown', 'Lisa Wang'];
+
 const mockRequirements: Requirement[] = [
-  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit' },
-  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap' },
-  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit' },
-  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap' },
+  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit', owner: 'Sarah Johnson', parentRequirement: null, tags: ['billing', 'currency'] },
+  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap', owner: 'John Smith', parentRequirement: 'REQ-001', tags: ['invoice', 'branding'] },
+  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit', owner: 'Emily Chen', parentRequirement: null, tags: ['api', 'usage'] },
+  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap', owner: 'Michael Brown', parentRequirement: null, tags: ['crm', 'integration'] },
 ];
 
 const mockArtifacts: Artifact[] = [
@@ -93,16 +99,23 @@ export function DiscoveryTab() {
   const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
   const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
+  const [tagInput, setTagInput] = useState('');
   const [newRequirement, setNewRequirement] = useState<{
     section: RequirementSection;
     description: string;
     status: RequirementStatus;
     classification: RequirementClassification;
+    owner: string;
+    parentRequirement: string;
+    tags: string[];
   }>({
     section: 'general',
     description: '',
     status: 'draft',
     classification: 'fit',
+    owner: '',
+    parentRequirement: '',
+    tags: [],
   });
 
   const generateReqId = () => {
@@ -111,6 +124,18 @@ export function DiscoveryTab() {
       return num > max ? num : max;
     }, 0);
     return `REQ-${String(maxId + 1).padStart(3, '0')}`;
+  };
+
+  const handleAddTag = () => {
+    const tag = tagInput.trim().toLowerCase();
+    if (tag && !newRequirement.tags.includes(tag)) {
+      setNewRequirement({ ...newRequirement, tags: [...newRequirement.tags, tag] });
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setNewRequirement({ ...newRequirement, tags: newRequirement.tags.filter(t => t !== tagToRemove) });
   };
 
   const handleAddRequirement = () => {
@@ -123,10 +148,14 @@ export function DiscoveryTab() {
       description: newRequirement.description,
       status: newRequirement.status,
       classification: newRequirement.classification,
+      owner: newRequirement.owner,
+      parentRequirement: newRequirement.parentRequirement || null,
+      tags: newRequirement.tags,
     };
 
     setRequirements([...requirements, requirement]);
-    setNewRequirement({ section: 'general', description: '', status: 'draft', classification: 'fit' });
+    setNewRequirement({ section: 'general', description: '', status: 'draft', classification: 'fit', owner: '', parentRequirement: '', tags: [] });
+    setTagInput('');
     setShowAddRequirement(false);
   };
 
@@ -217,12 +246,84 @@ export function DiscoveryTab() {
                   </Select>
                 </div>
               </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Owner</label>
+                  <Select
+                    value={newRequirement.owner}
+                    onValueChange={(v) => setNewRequirement({ ...newRequirement, owner: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select owner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {owners.map((owner) => (
+                        <SelectItem key={owner} value={owner}>
+                          {owner}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Parent Requirement</label>
+                  <Select
+                    value={newRequirement.parentRequirement}
+                    onValueChange={(v) => setNewRequirement({ ...newRequirement, parentRequirement: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {requirements.map((req) => (
+                        <SelectItem key={req.id} value={req.reqId}>
+                          {req.reqId} - {req.description.slice(0, 30)}...
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <Textarea
                 placeholder="Requirement description"
                 value={newRequirement.description}
                 onChange={(e) => setNewRequirement({ ...newRequirement, description: e.target.value })}
                 rows={2}
               />
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Tags</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add tag and press Enter"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Button type="button" size="sm" variant="outline" onClick={handleAddTag}>
+                    Add
+                  </Button>
+                </div>
+                {newRequirement.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {newRequirement.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="gap-1">
+                        {tag}
+                        <X
+                          className="h-3 w-3 cursor-pointer hover:text-destructive"
+                          onClick={() => removeTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Status:</span>
                 {(['draft', 'completed'] as const).map((s) => (

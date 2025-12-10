@@ -166,11 +166,11 @@ export default function RequirementDetail() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => navigate(`/implementation/${implementationId}`)}
+                onClick={() => navigate(`/implementation/${implementationId}?tab=discovery`)}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Implementation
+                Back to Requirements
               </Button>
               
               <div className="flex items-center justify-between">

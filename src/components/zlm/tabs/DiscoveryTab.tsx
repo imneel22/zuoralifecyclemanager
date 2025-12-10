@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -122,6 +122,8 @@ export function DiscoveryTab() {
   const [classificationFilter, setClassificationFilter] = useState<'all' | RequirementClassification>('all');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const filteredRequirements = requirements.filter(req => {
     const matchesSearch = searchQuery === '' || 
@@ -134,6 +136,21 @@ export function DiscoveryTab() {
     
     return matchesSearch && matchesClassification;
   });
+
+  const totalPages = Math.ceil(filteredRequirements.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRequirements = filteredRequirements.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleClassificationChange = (value: 'all' | RequirementClassification) => {
+    setClassificationFilter(value);
+    setCurrentPage(1);
+  };
   const [newRequirement, setNewRequirement] = useState<{
     section: RequirementSection;
     description: string;
@@ -444,13 +461,13 @@ export function DiscoveryTab() {
               <Input
                 placeholder="Search by ID, description, owner, or tags..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-9"
               />
             </div>
             <Select
               value={classificationFilter}
-              onValueChange={(v: 'all' | RequirementClassification) => setClassificationFilter(v)}
+              onValueChange={handleClassificationChange}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by classification" />
@@ -632,7 +649,7 @@ export function DiscoveryTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRequirements.map((req) => (
+                  {paginatedRequirements.map((req) => (
                     <TableRow 
                       key={req.id} 
                       className="cursor-pointer hover:bg-muted/50"
@@ -677,6 +694,77 @@ export function DiscoveryTab() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {filteredRequirements.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredRequirements.length)} of {filteredRequirements.length}</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(v) => {
+                    setItemsPerPage(Number(v));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[70px] h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span>per page</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

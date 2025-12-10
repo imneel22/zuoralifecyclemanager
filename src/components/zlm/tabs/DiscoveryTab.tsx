@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 type RequirementStatus = 'draft' | 'completed';
 type RequirementClassification = 'fit' | 'gap';
 type RequirementSection = 'price_to_offer' | 'lead_to_offer' | 'order_to_cash' | 'usage_to_bill' | 'general';
+type RequirementPriority = 'low' | 'medium' | 'high' | 'critical';
 
 interface Requirement {
   id: string;
@@ -22,6 +23,7 @@ interface Requirement {
   description: string;
   status: RequirementStatus;
   classification: RequirementClassification;
+  priority: RequirementPriority;
   owner: string;
   parentRequirement: string | null;
   tags: string[];
@@ -52,10 +54,10 @@ const sections: { value: RequirementSection; label: string }[] = [
 const owners = ['Sarah Johnson', 'John Smith', 'Emily Chen', 'Michael Brown', 'Lisa Wang'];
 
 const mockRequirements: Requirement[] = [
-  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit', owner: 'Sarah Johnson', parentRequirement: null, tags: ['billing', 'currency'] },
-  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap', owner: 'John Smith', parentRequirement: 'REQ-001', tags: ['invoice', 'branding'] },
-  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit', owner: 'Emily Chen', parentRequirement: null, tags: ['api', 'usage'] },
-  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap', owner: 'Michael Brown', parentRequirement: null, tags: ['crm', 'integration'] },
+  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit', priority: 'high', owner: 'Sarah Johnson', parentRequirement: null, tags: ['billing', 'currency'] },
+  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap', priority: 'medium', owner: 'John Smith', parentRequirement: 'REQ-001', tags: ['invoice', 'branding'] },
+  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit', priority: 'critical', owner: 'Emily Chen', parentRequirement: null, tags: ['api', 'usage'] },
+  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap', priority: 'low', owner: 'Michael Brown', parentRequirement: null, tags: ['crm', 'integration'] },
 ];
 
 const mockArtifacts: Artifact[] = [
@@ -101,6 +103,13 @@ const sectionConfig: Record<RequirementSection, { label: string; className: stri
   general: { label: 'General', className: 'bg-muted text-muted-foreground' },
 };
 
+const priorityConfig: Record<RequirementPriority, { label: string; className: string }> = {
+  low: { label: 'Low', className: 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400' },
+  medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  high: { label: 'High', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+  critical: { label: 'Critical', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+};
+
 export function DiscoveryTab() {
   const navigate = useNavigate();
   const { id: implementationId } = useParams();
@@ -130,6 +139,7 @@ export function DiscoveryTab() {
     description: string;
     status: RequirementStatus;
     classification: RequirementClassification;
+    priority: RequirementPriority;
     owner: string;
     parentRequirement: string;
     tags: string[];
@@ -138,6 +148,7 @@ export function DiscoveryTab() {
     description: '',
     status: 'draft',
     classification: 'fit',
+    priority: 'medium',
     owner: '',
     parentRequirement: '',
     tags: [],
@@ -173,13 +184,14 @@ export function DiscoveryTab() {
       description: newRequirement.description,
       status: newRequirement.status,
       classification: newRequirement.classification,
+      priority: newRequirement.priority,
       owner: newRequirement.owner,
       parentRequirement: newRequirement.parentRequirement || null,
       tags: newRequirement.tags,
     };
 
     setRequirements([...requirements, requirement]);
-    setNewRequirement({ section: 'general', description: '', status: 'draft', classification: 'fit', owner: '', parentRequirement: '', tags: [] });
+    setNewRequirement({ section: 'general', description: '', status: 'draft', classification: 'fit', priority: 'medium', owner: '', parentRequirement: '', tags: [] });
     setTagInput('');
     setShowAddRequirement(false);
   };
@@ -262,9 +274,10 @@ export function DiscoveryTab() {
           description: values[2] || '',
           status: (values[3] as RequirementStatus) || 'draft',
           classification: (values[4] as RequirementClassification) || 'fit',
-          owner: values[5] || '',
-          parentRequirement: values[6] || null,
-          tags: values[7] ? values[7].split(';').filter(t => t.trim()) : [],
+          priority: (values[5] as RequirementPriority) || 'medium',
+          owner: values[6] || '',
+          parentRequirement: values[7] || null,
+          tags: values[8] ? values[8].split(';').filter(t => t.trim()) : [],
         };
       }).filter(req => req.description.trim());
 
@@ -610,11 +623,12 @@ export function DiscoveryTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">ID</TableHead>
-                    <TableHead className="w-[140px]">Section</TableHead>
+                    <TableHead className="w-[130px]">Section</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[90px]">Priority</TableHead>
+                    <TableHead className="w-[90px]">Status</TableHead>
                     <TableHead className="w-[80px]">Classification</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -631,6 +645,11 @@ export function DiscoveryTab() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{req.description}</TableCell>
+                      <TableCell>
+                        <Badge className={priorityConfig[req.priority].className}>
+                          {priorityConfig[req.priority].label}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge className={statusConfig[req.status].className}>
                           {statusConfig[req.status].label}

@@ -114,6 +114,10 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
                 <dt className="text-sm text-muted-foreground">Product Types</dt>
                 <dd className="font-medium">{implementation.productTypes.join(', ')}</dd>
               </div>
+              <div className="sm:col-span-3">
+                <dt className="text-sm text-muted-foreground">Project Description</dt>
+                <dd className="font-medium">{implementation.projectDescription || '—'}</dd>
+              </div>
             </dl>
           </CardContent>
         </Card>

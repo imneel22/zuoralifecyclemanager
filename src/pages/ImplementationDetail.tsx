@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, Building2, Users, Settings, Database, TestTube, Rocket, Activity, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,7 +20,15 @@ import { cn } from '@/lib/utils';
 export default function ImplementationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl === 'discovery' ? 'tasks' : 'overview');
+
+  useEffect(() => {
+    if (tabFromUrl === 'discovery') {
+      setActiveTab('tasks');
+    }
+  }, [tabFromUrl]);
 
   const implementation = mockImplementations.find((impl) => impl.id === id);
 

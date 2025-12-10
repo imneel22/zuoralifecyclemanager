@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2 } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -192,6 +192,63 @@ export function DiscoveryTab() {
     setRequirements(requirements.filter((r) => r.id !== id));
   };
 
+  const handleExportRequirements = () => {
+    const exportData = requirements.map(({ id, ...rest }) => rest);
+    const csvHeader = 'reqId,section,description,status,classification,owner,parentRequirement,tags\n';
+    const csvContent = exportData.map(req => 
+      `"${req.reqId}","${req.section}","${req.description.replace(/"/g, '""')}","${req.status}","${req.classification}","${req.owner}","${req.parentRequirement || ''}","${req.tags.join(';')}"`
+    ).join('\n');
+    
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `requirements_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleImportRequirements = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n').filter(line => line.trim());
+      const header = lines[0];
+      
+      // Skip header row
+      const dataLines = lines.slice(1);
+      
+      let maxId = requirements.reduce((max, req) => {
+        const num = parseInt(req.reqId.replace('REQ-', ''));
+        return num > max ? num : max;
+      }, 0);
+
+      const importedReqs: Requirement[] = dataLines.map((line, index) => {
+        // Parse CSV line (handling quoted fields)
+        const matches = line.match(/("([^"]*(?:""[^"]*)*)"|[^,]*)(,|$)/g) || [];
+        const values = matches.map(m => m.replace(/,$/g, '').replace(/^"|"$/g, '').replace(/""/g, '"'));
+        
+        maxId++;
+        return {
+          id: Date.now().toString() + index,
+          reqId: values[0] || `REQ-${String(maxId).padStart(3, '0')}`,
+          section: (values[1] as RequirementSection) || 'general',
+          description: values[2] || '',
+          status: (values[3] as RequirementStatus) || 'draft',
+          classification: (values[4] as RequirementClassification) || 'fit',
+          owner: values[5] || '',
+          parentRequirement: values[6] || null,
+          tags: values[7] ? values[7].split(';').filter(t => t.trim()) : [],
+        };
+      }).filter(req => req.description.trim());
+
+      setRequirements([...requirements, ...importedReqs]);
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
   return (
     <div className="space-y-6">
       {/* Requirements Section */}
@@ -201,10 +258,30 @@ export function DiscoveryTab() {
             <CardTitle className="text-lg">Requirements</CardTitle>
             <CardDescription>Customer requirements with section, status, and classification</CardDescription>
           </div>
-          <Button size="sm" onClick={() => setShowAddRequirement(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Requirement
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleExportRequirements}>
+              <Download className="h-4 w-4 mr-1" />
+              Export
+            </Button>
+            <label>
+              <Button size="sm" variant="outline" asChild>
+                <span>
+                  <FileUp className="h-4 w-4 mr-1" />
+                  Import
+                </span>
+              </Button>
+              <input
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleImportRequirements}
+              />
+            </label>
+            <Button size="sm" onClick={() => setShowAddRequirement(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {showAddRequirement && (

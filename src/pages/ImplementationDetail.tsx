@@ -7,9 +7,9 @@ import { Header } from '@/components/zlm/Header';
 import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
 import { PhaseBadge } from '@/components/zlm/PhaseBadge';
 import { TeamAvatars } from '@/components/zlm/TeamAvatars';
-import { mockImplementations, mockTasks, mockActivities } from '@/data/mockData';
+import { mockImplementations, mockActivities } from '@/data/mockData';
 import { OverviewTab } from '@/components/zlm/tabs/OverviewTab';
-import { TasksTab } from '@/components/zlm/tabs/TasksTab';
+import { DiscoveryTab } from '@/components/zlm/tabs/DiscoveryTab';
 import { ConfigurationTab } from '@/components/zlm/tabs/ConfigurationTab';
 import { DataMigrationTab } from '@/components/zlm/tabs/DataMigrationTab';
 import { TestingTab } from '@/components/zlm/tabs/TestingTab';
@@ -50,7 +50,7 @@ export default function ImplementationDetail() {
       case 'overview':
         return <OverviewTab implementation={implementation} />;
       case 'tasks':
-        return <TasksTab tasks={mockTasks} />;
+        return <DiscoveryTab />;
       case 'configuration':
         return <ConfigurationTab />;
       case 'migration':

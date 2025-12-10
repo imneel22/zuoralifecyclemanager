@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 type RequirementStatus = 'draft' | 'completed';
 type RequirementClassification = 'fit' | 'gap';
@@ -23,6 +25,12 @@ interface Requirement {
   owner: string;
   parentRequirement: string | null;
   tags: string[];
+  fitGapScore?: number;
+  fitGapRationale?: string;
+  aoc?: string;
+  aocDescription?: string;
+  aocComplexity?: 'low' | 'medium' | 'high';
+  isBaseline?: boolean;
 }
 
 interface Artifact {
@@ -96,10 +104,13 @@ const sectionConfig: Record<RequirementSection, { label: string; className: stri
 export function DiscoveryTab() {
   const navigate = useNavigate();
   const { id: implementationId } = useParams();
+  const { toast } = useToast();
   const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
   const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | null>(null);
   const [newRequirement, setNewRequirement] = useState<{
     section: RequirementSection;
     description: string;
@@ -249,16 +260,131 @@ export function DiscoveryTab() {
     event.target.value = '';
   };
 
+  const handleFitGapAnalysis = async () => {
+    if (requirements.length === 0) {
+      toast({ title: "No requirements", description: "Add requirements first to run analysis", variant: "destructive" });
+      return;
+    }
+    setIsAnalyzing(true);
+    setAnalysisType('fitgap');
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-requirements', {
+        body: { requirements, analysisType: 'fitgap' }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.results) {
+        setRequirements(prev => prev.map(req => {
+          const analysis = data.results.find((r: any) => r.reqId === req.reqId);
+          if (analysis) {
+            return {
+              ...req,
+              classification: analysis.classification || req.classification,
+              fitGapScore: analysis.fitGapScore,
+              fitGapRationale: analysis.rationale,
+            };
+          }
+          return req;
+        }));
+        toast({ title: "FIT/GAP Analysis Complete", description: `Analyzed ${data.results.length} requirements` });
+      }
+    } catch (error) {
+      console.error('FIT/GAP analysis error:', error);
+      toast({ title: "Analysis Failed", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisType(null);
+    }
+  };
+
+  const handleAOCAnalysis = async () => {
+    if (requirements.length === 0) {
+      toast({ title: "No requirements", description: "Add requirements first to run analysis", variant: "destructive" });
+      return;
+    }
+    setIsAnalyzing(true);
+    setAnalysisType('aoc');
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-requirements', {
+        body: { requirements, analysisType: 'aoc' }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.results) {
+        setRequirements(prev => prev.map(req => {
+          const analysis = data.results.find((r: any) => r.reqId === req.reqId);
+          if (analysis) {
+            return {
+              ...req,
+              aoc: analysis.aoc,
+              aocDescription: analysis.aocDescription,
+              aocComplexity: analysis.complexityLevel,
+            };
+          }
+          return req;
+        }));
+        toast({ title: "AOC Analysis Complete", description: `Identified complexity areas for ${data.results.length} requirements` });
+      }
+    } catch (error) {
+      console.error('AOC analysis error:', error);
+      toast({ title: "Analysis Failed", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisType(null);
+    }
+  };
+
+  const handleMarkBaseline = () => {
+    setRequirements(prev => prev.map(req => ({ ...req, isBaseline: true })));
+    toast({ title: "Baseline Marked", description: `${requirements.length} requirements marked as baseline` });
+  };
+
   return (
     <div className="space-y-6">
       {/* Requirements Section */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">
           <div>
             <CardTitle className="text-lg">Requirements</CardTitle>
             <CardDescription>Customer requirements with section, status, and classification</CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleFitGapAnalysis}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing && analysisType === 'fitgap' ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-1" />
+              )}
+              FIT/GAP Analysis
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleAOCAnalysis}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing && analysisType === 'aoc' ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 mr-1" />
+              )}
+              Check AOCs
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleMarkBaseline}
+            >
+              <Flag className="h-4 w-4 mr-1" />
+              Mark Baseline
+            </Button>
             <Button size="sm" variant="outline" onClick={handleExportRequirements}>
               <Download className="h-4 w-4 mr-1" />
               Export

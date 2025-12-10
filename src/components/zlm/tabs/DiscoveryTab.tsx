@@ -1,17 +1,23 @@
 import { useState } from 'react';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, CheckCircle2 } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, CheckCircle2, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type RequirementStatus = 'draft' | 'completed';
+type RequirementClassification = 'fit' | 'gap';
+type RequirementSection = 'price_to_offer' | 'lead_to_offer' | 'order_to_cash' | 'usage_to_bill' | 'general';
 
 interface Requirement {
   id: string;
-  title: string;
+  reqId: string; // Unique requirement ID like REQ-001
+  section: RequirementSection;
   description: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'reviewed' | 'approved';
+  status: RequirementStatus;
+  classification: RequirementClassification;
 }
 
 interface Artifact {
@@ -22,10 +28,19 @@ interface Artifact {
   uploadedAt: string;
 }
 
+const sections: { value: RequirementSection; label: string }[] = [
+  { value: 'price_to_offer', label: 'Price to Offer' },
+  { value: 'lead_to_offer', label: 'Lead to Offer' },
+  { value: 'order_to_cash', label: 'Order to Cash' },
+  { value: 'usage_to_bill', label: 'Usage to Bill' },
+  { value: 'general', label: 'General' },
+];
+
 const mockRequirements: Requirement[] = [
-  { id: '1', title: 'Multi-currency support', description: 'Need to support USD, EUR, and GBP for billing', priority: 'high', status: 'approved' },
-  { id: '2', title: 'Custom invoice templates', description: 'Branded invoice templates with company logo', priority: 'medium', status: 'reviewed' },
-  { id: '3', title: 'Usage-based billing', description: 'Track API calls and bill based on consumption', priority: 'high', status: 'pending' },
+  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit' },
+  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap' },
+  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit' },
+  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap' },
 ];
 
 const mockArtifacts: Artifact[] = [
@@ -53,37 +68,62 @@ const getFileIcon = (type: string) => {
   }
 };
 
-const priorityConfig = {
-  low: { label: 'Low', className: 'bg-muted text-muted-foreground' },
-  medium: { label: 'Medium', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-  high: { label: 'High', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+const statusConfig = {
+  draft: { label: 'Draft', className: 'bg-muted text-muted-foreground' },
+  completed: { label: 'Completed', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
 };
 
-const statusConfig = {
-  pending: { label: 'Pending', className: 'bg-muted text-muted-foreground' },
-  reviewed: { label: 'Reviewed', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  approved: { label: 'Approved', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+const classificationConfig = {
+  fit: { label: 'Fit', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  gap: { label: 'Gap', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+};
+
+const sectionConfig: Record<RequirementSection, { label: string; className: string }> = {
+  price_to_offer: { label: 'Price to Offer', className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  lead_to_offer: { label: 'Lead to Offer', className: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' },
+  order_to_cash: { label: 'Order to Cash', className: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  usage_to_bill: { label: 'Usage to Bill', className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
+  general: { label: 'General', className: 'bg-muted text-muted-foreground' },
 };
 
 export function DiscoveryTab() {
   const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
   const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
-  const [newRequirement, setNewRequirement] = useState<{ title: string; description: string; priority: 'low' | 'medium' | 'high' }>({ title: '', description: '', priority: 'medium' });
+  const [newRequirement, setNewRequirement] = useState<{
+    section: RequirementSection;
+    description: string;
+    status: RequirementStatus;
+    classification: RequirementClassification;
+  }>({
+    section: 'general',
+    description: '',
+    status: 'draft',
+    classification: 'fit',
+  });
+
+  const generateReqId = () => {
+    const maxId = requirements.reduce((max, req) => {
+      const num = parseInt(req.reqId.replace('REQ-', ''));
+      return num > max ? num : max;
+    }, 0);
+    return `REQ-${String(maxId + 1).padStart(3, '0')}`;
+  };
 
   const handleAddRequirement = () => {
-    if (!newRequirement.title.trim()) return;
-    
+    if (!newRequirement.description.trim()) return;
+
     const requirement: Requirement = {
       id: Date.now().toString(),
-      title: newRequirement.title,
+      reqId: generateReqId(),
+      section: newRequirement.section,
       description: newRequirement.description,
-      priority: newRequirement.priority,
-      status: 'pending',
+      status: newRequirement.status,
+      classification: newRequirement.classification,
     };
-    
+
     setRequirements([...requirements, requirement]);
-    setNewRequirement({ title: '', description: '', priority: 'medium' });
+    setNewRequirement({ section: 'general', description: '', status: 'draft', classification: 'fit' });
     setShowAddRequirement(false);
   };
 
@@ -92,10 +132,12 @@ export function DiscoveryTab() {
     if (!files) return;
 
     Array.from(files).forEach((file) => {
-      const type = file.type.includes('image') ? 'image' 
-        : file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.csv') ? 'spreadsheet'
+      const type = file.type.includes('image')
+        ? 'image'
+        : file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.csv')
+        ? 'spreadsheet'
         : 'document';
-      
+
       const artifact: Artifact = {
         id: Date.now().toString() + Math.random(),
         name: file.name,
@@ -103,10 +145,10 @@ export function DiscoveryTab() {
         size: file.size,
         uploadedAt: new Date().toISOString().split('T')[0],
       };
-      
+
       setArtifacts((prev) => [...prev, artifact]);
     });
-    
+
     event.target.value = '';
   };
 
@@ -125,7 +167,7 @@ export function DiscoveryTab() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg">Requirements</CardTitle>
-            <CardDescription>Customer requirements and specifications</CardDescription>
+            <CardDescription>Customer requirements with section, status, and classification</CardDescription>
           </div>
           <Button size="sm" onClick={() => setShowAddRequirement(true)}>
             <Plus className="h-4 w-4 mr-1" />
@@ -135,34 +177,70 @@ export function DiscoveryTab() {
         <CardContent className="space-y-4">
           {showAddRequirement && (
             <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
-              <Input
-                placeholder="Requirement title"
-                value={newRequirement.title}
-                onChange={(e) => setNewRequirement({ ...newRequirement, title: e.target.value })}
-              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Section</label>
+                  <Select
+                    value={newRequirement.section}
+                    onValueChange={(v: RequirementSection) => setNewRequirement({ ...newRequirement, section: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sections.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Classification</label>
+                  <Select
+                    value={newRequirement.classification}
+                    onValueChange={(v: RequirementClassification) =>
+                      setNewRequirement({ ...newRequirement, classification: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fit">Fit</SelectItem>
+                      <SelectItem value="gap">Gap</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <Textarea
-                placeholder="Description (optional)"
+                placeholder="Requirement description"
                 value={newRequirement.description}
                 onChange={(e) => setNewRequirement({ ...newRequirement, description: e.target.value })}
                 rows={2}
               />
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Priority:</span>
-                {(['low', 'medium', 'high'] as const).map((p) => (
+                <span className="text-sm text-muted-foreground">Status:</span>
+                {(['draft', 'completed'] as const).map((s) => (
                   <Button
-                    key={p}
+                    key={s}
                     type="button"
                     size="sm"
-                    variant={newRequirement.priority === p ? 'default' : 'outline'}
-                    onClick={() => setNewRequirement({ ...newRequirement, priority: p })}
+                    variant={newRequirement.status === s ? 'default' : 'outline'}
+                    onClick={() => setNewRequirement({ ...newRequirement, status: s })}
                   >
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
                   </Button>
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleAddRequirement}>Save</Button>
-                <Button size="sm" variant="ghost" onClick={() => setShowAddRequirement(false)}>Cancel</Button>
+                <Button size="sm" onClick={handleAddRequirement}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowAddRequirement(false)}>
+                  Cancel
+                </Button>
               </div>
             </div>
           )}
@@ -180,25 +258,24 @@ export function DiscoveryTab() {
                   key={req.id}
                   className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors group"
                 >
-                  <CheckCircle2 className={`h-5 w-5 mt-0.5 ${req.status === 'approved' ? 'text-green-500' : 'text-muted-foreground'}`} />
+                  <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                    <Hash className="h-4 w-4" />
+                    <span className="text-sm font-mono font-medium">{req.reqId}</span>
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{req.title}</span>
-                      <Badge className={priorityConfig[req.priority].className}>
-                        {priorityConfig[req.priority].label}
-                      </Badge>
-                      <Badge className={statusConfig[req.status].className}>
-                        {statusConfig[req.status].label}
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <Badge className={sectionConfig[req.section].className}>{sectionConfig[req.section].label}</Badge>
+                      <Badge className={statusConfig[req.status].className}>{statusConfig[req.status].label}</Badge>
+                      <Badge className={classificationConfig[req.classification].className}>
+                        {classificationConfig[req.classification].label}
                       </Badge>
                     </div>
-                    {req.description && (
-                      <p className="text-sm text-muted-foreground">{req.description}</p>
-                    )}
+                    <p className="text-sm text-muted-foreground">{req.description}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                     onClick={() => removeRequirement(req.id)}
                   >
                     <X className="h-4 w-4" />
@@ -224,9 +301,7 @@ export function DiscoveryTab() {
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-primary">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Images, Excel, PDF, Word documents
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Images, Excel, PDF, Word documents</p>
             </div>
             <input
               type="file"

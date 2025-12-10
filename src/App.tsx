@@ -9,6 +9,7 @@ import Projects from "./pages/Projects";
 import ImplementationDetail from "./pages/ImplementationDetail";
 import CreateImplementation from "./pages/CreateImplementation";
 import ProductCatalog from "./pages/ProductCatalog";
+import RequirementDetail from "./pages/RequirementDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/implementation/:id" element={<ImplementationDetail />} />
+          <Route path="/implementation/:implementationId/requirement/:reqId" element={<RequirementDetail />} />
           <Route path="/create-implementation" element={<CreateImplementation />} />
           <Route path="/product-catalog" element={<ProductCatalog />} />
           <Route path="*" element={<NotFound />} />

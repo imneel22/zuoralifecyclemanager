@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2 } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -109,8 +109,22 @@ export function DiscoveryTab() {
   const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [classificationFilter, setClassificationFilter] = useState<'all' | RequirementClassification>('all');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | null>(null);
+
+  const filteredRequirements = requirements.filter(req => {
+    const matchesSearch = searchQuery === '' || 
+      req.reqId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesClassification = classificationFilter === 'all' || req.classification === classificationFilter;
+    
+    return matchesSearch && matchesClassification;
+  });
   const [newRequirement, setNewRequirement] = useState<{
     section: RequirementSection;
     description: string;
@@ -410,6 +424,32 @@ export function DiscoveryTab() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by ID, description, owner, or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={classificationFilter}
+              onValueChange={(v: 'all' | RequirementClassification) => setClassificationFilter(v)}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by classification" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Classifications</SelectItem>
+                <SelectItem value="fit">Fit</SelectItem>
+                <SelectItem value="gap">Gap</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {showAddRequirement && (
             <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -556,7 +596,13 @@ export function DiscoveryTab() {
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No requirements added yet</p>
-              <p className="text-sm">Click "Add Requirement" to get started</p>
+              <p className="text-sm">Click "Add" to get started</p>
+            </div>
+          ) : filteredRequirements.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No requirements match your search</p>
+              <p className="text-sm">Try adjusting your search or filter</p>
             </div>
           ) : (
             <div className="border rounded-lg overflow-hidden">
@@ -572,7 +618,7 @@ export function DiscoveryTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {requirements.map((req) => (
+                  {filteredRequirements.map((req) => (
                     <TableRow 
                       key={req.id} 
                       className="cursor-pointer hover:bg-muted/50"

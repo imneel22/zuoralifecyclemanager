@@ -24,6 +24,7 @@ export const mockImplementations: Implementation[] = [
     updatedAt: '2024-02-01',
     arr: 2500000,
     businessModel: 'hybrid',
+    projectDescription: 'Migration from legacy billing system to Zuora with hybrid pricing model combining subscription and usage-based charges for their SaaS platform.',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-15', endDate: '2024-01-28', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-29', status: 'in_progress' },
@@ -47,6 +48,7 @@ export const mockImplementations: Implementation[] = [
     updatedAt: '2024-02-05',
     arr: 1800000,
     businessModel: 'subscription',
+    projectDescription: 'Implementing tiered subscription billing for industrial IoT platform with volume-based pricing across multiple product lines.',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-20', endDate: '2024-01-30', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-31', endDate: '2024-02-10', status: 'completed' },
@@ -70,6 +72,7 @@ export const mockImplementations: Implementation[] = [
     updatedAt: '2024-02-08',
     arr: 5200000,
     businessModel: 'subscription',
+    projectDescription: 'Enterprise subscription billing implementation for wealth management platform with complex revenue recognition requirements.',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-10', endDate: '2024-01-18', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-19', endDate: '2024-01-31', status: 'completed' },
@@ -93,6 +96,7 @@ export const mockImplementations: Implementation[] = [
     updatedAt: '2024-02-10',
     arr: 890000,
     businessModel: 'usage',
+    projectDescription: 'Usage-based billing implementation for streaming platform with freemium tier and consumption-based pricing for premium features.',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-02-01', status: 'in_progress' },
       { phase: 'configuration', status: 'pending' },
@@ -116,6 +120,7 @@ export const mockImplementations: Implementation[] = [
     updatedAt: '2024-02-12',
     arr: 3400000,
     businessModel: 'hybrid',
+    projectDescription: 'Healthcare SaaS billing transformation with per-patient pricing and subscription bundles for clinics and hospital systems.',
     phaseDates: [
       { phase: 'discovery', startDate: '2023-12-01', endDate: '2023-12-15', status: 'completed' },
       { phase: 'configuration', startDate: '2023-12-16', endDate: '2024-01-10', status: 'completed' },

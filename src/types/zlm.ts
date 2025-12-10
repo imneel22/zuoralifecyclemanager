@@ -42,6 +42,7 @@ export interface Implementation {
   arr?: number;
   businessModel?: BusinessModel;
   phaseDates?: PhaseDate[];
+  projectDescription?: string;
 }
 
 export interface Task {

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Implementation, Phase, BusinessModel } from '@/types/zlm';
 import { TeamAvatars } from '../TeamAvatars';
 import { AIRecommendation } from '../AIRecommendation';
+import { AIWorkflowSettings } from '../AIWorkflowSettings';
 import { useNavigate } from 'react-router-dom';
 
 interface OverviewTabProps {
@@ -219,6 +220,9 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Workflow Settings */}
+        <AIWorkflowSettings implementationId={implementation.id} />
       </div>
 
       {/* Sidebar */}

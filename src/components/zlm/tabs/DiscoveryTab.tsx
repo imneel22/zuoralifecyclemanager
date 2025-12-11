@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ interface Requirement {
   aocDescription?: string;
   aocComplexity?: 'low' | 'medium' | 'high';
   isBaseline?: boolean;
+  sourceArtifact?: string;
 }
 
 interface Artifact {
@@ -52,19 +53,6 @@ const sections: { value: RequirementSection; label: string }[] = [
 ];
 
 const owners = ['Sarah Johnson', 'John Smith', 'Emily Chen', 'Michael Brown', 'Lisa Wang'];
-
-const mockRequirements: Requirement[] = [
-  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit', priority: 'high', owner: 'Sarah Johnson', parentRequirement: null, tags: ['billing', 'currency'] },
-  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap', priority: 'medium', owner: 'John Smith', parentRequirement: 'REQ-001', tags: ['invoice', 'branding'] },
-  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit', priority: 'critical', owner: 'Emily Chen', parentRequirement: null, tags: ['api', 'usage'] },
-  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap', priority: 'low', owner: 'Michael Brown', parentRequirement: null, tags: ['crm', 'integration'] },
-];
-
-const mockArtifacts: Artifact[] = [
-  { id: '1', name: 'Current_Pricing_Model.xlsx', type: 'spreadsheet', size: 245000, uploadedAt: '2024-01-15' },
-  { id: '2', name: 'Brand_Guidelines.pdf', type: 'document', size: 1200000, uploadedAt: '2024-01-14' },
-  { id: '3', name: 'Invoice_Template.png', type: 'image', size: 89000, uploadedAt: '2024-01-13' },
-];
 
 const formatFileSize = (bytes: number) => {
   if (bytes < 1024) return bytes + ' B';
@@ -114,14 +102,14 @@ export function DiscoveryTab() {
   const navigate = useNavigate();
   const { id: implementationId } = useParams();
   const { toast } = useToast();
-  const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
-  const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [classificationFilter, setClassificationFilter] = useState<'all' | RequirementClassification>('all');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | null>(null);
+  const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | 'rtm' | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -171,8 +159,8 @@ export function DiscoveryTab() {
     tags: [],
   });
 
-  const generateReqId = () => {
-    const maxId = requirements.reduce((max, req) => {
+  const generateReqId = (existingReqs: Requirement[] = requirements) => {
+    const maxId = existingReqs.reduce((max, req) => {
       const num = parseInt(req.reqId.replace('REQ-', ''));
       return num > max ? num : max;
     }, 0);
@@ -248,9 +236,9 @@ export function DiscoveryTab() {
 
   const handleExportRequirements = () => {
     const exportData = requirements.map(({ id, ...rest }) => rest);
-    const csvHeader = 'reqId,section,description,status,classification,owner,parentRequirement,tags\n';
+    const csvHeader = 'reqId,section,description,status,classification,priority,owner,parentRequirement,tags\n';
     const csvContent = exportData.map(req => 
-      `"${req.reqId}","${req.section}","${req.description.replace(/"/g, '""')}","${req.status}","${req.classification}","${req.owner}","${req.parentRequirement || ''}","${req.tags.join(';')}"`
+      `"${req.reqId}","${req.section}","${req.description.replace(/"/g, '""')}","${req.status}","${req.classification}","${req.priority}","${req.owner}","${req.parentRequirement || ''}","${req.tags.join(';')}"`
     ).join('\n');
     
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -302,6 +290,54 @@ export function DiscoveryTab() {
     };
     reader.readAsText(file);
     event.target.value = '';
+  };
+
+  const handleRTMAgent = async () => {
+    if (artifacts.length === 0) {
+      toast({ title: "No artifacts", description: "Upload customer artifacts first to generate requirements", variant: "destructive" });
+      return;
+    }
+    setIsAnalyzing(true);
+    setAnalysisType('rtm');
+    try {
+      const { data, error } = await supabase.functions.invoke('rtm-agent', {
+        body: { artifacts }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.requirements && Array.isArray(data.requirements)) {
+        const newReqs: Requirement[] = [];
+        let currentReqs = [...requirements];
+        
+        data.requirements.forEach((req: any, index: number) => {
+          const newReq: Requirement = {
+            id: Date.now().toString() + index,
+            reqId: generateReqId(currentReqs),
+            section: req.section || 'general',
+            description: req.description || '',
+            status: 'draft',
+            classification: 'fit',
+            priority: req.priority || 'medium',
+            owner: '',
+            parentRequirement: null,
+            tags: req.tags || [],
+            sourceArtifact: req.sourceArtifact,
+          };
+          newReqs.push(newReq);
+          currentReqs = [...currentReqs, newReq];
+        });
+        
+        setRequirements(prev => [...prev, ...newReqs]);
+        toast({ title: "RTM Analysis Complete", description: `Generated ${newReqs.length} requirements from ${artifacts.length} artifacts` });
+      }
+    } catch (error) {
+      console.error('RTM agent error:', error);
+      toast({ title: "Analysis Failed", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisType(null);
+    }
   };
 
   const handleFitGapAnalysis = async () => {
@@ -387,19 +423,103 @@ export function DiscoveryTab() {
 
   return (
     <div className="space-y-6">
-      {/* Requirements Section */}
+      {/* Step 1: Customer Artifacts Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Step 1</Badge>
+            <CardTitle className="text-lg">Customer Artifacts</CardTitle>
+          </div>
+          <CardDescription>Upload customer documents, spreadsheets, and files to extract requirements</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Upload Area */}
+          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-primary">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Images, Excel, PDF, Word documents</p>
+            </div>
+            <input
+              type="file"
+              className="hidden"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
+              onChange={handleFileUpload}
+            />
+          </label>
+
+          {/* Uploaded Files */}
+          {artifacts.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {artifacts.map((artifact) => (
+                <div
+                  key={artifact.id}
+                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors group"
+                >
+                  {getFileIcon(artifact.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{artifact.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(artifact.size)} • {artifact.uploadedAt}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeArtifact(artifact.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* RTM Agent Button */}
+          {artifacts.length > 0 && (
+            <div className="flex justify-end pt-2">
+              <Button 
+                onClick={handleRTMAgent}
+                disabled={isAnalyzing}
+                className="gap-2"
+              >
+                {isAnalyzing && analysisType === 'rtm' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Bot className="h-4 w-4" />
+                )}
+                Run RTM Agent
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Step 2: Requirements Section */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">
           <div>
-            <CardTitle className="text-lg">Requirements</CardTitle>
-            <CardDescription>Customer requirements with section, status, and classification</CardDescription>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Step 2</Badge>
+              <CardTitle className="text-lg">Requirements</CardTitle>
+            </div>
+            <CardDescription>
+              {requirements.length === 0 
+                ? "Upload artifacts and run RTM Agent to generate requirements, or add manually"
+                : "Customer requirements with section, status, and classification"
+              }
+            </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button 
               size="sm" 
               variant="outline" 
               onClick={handleFitGapAnalysis}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || requirements.length === 0}
             >
               {isAnalyzing && analysisType === 'fitgap' ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -412,7 +532,7 @@ export function DiscoveryTab() {
               size="sm" 
               variant="outline" 
               onClick={handleAOCAnalysis}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || requirements.length === 0}
             >
               {isAnalyzing && analysisType === 'aoc' ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -425,11 +545,12 @@ export function DiscoveryTab() {
               size="sm" 
               variant="outline" 
               onClick={handleMarkBaseline}
+              disabled={requirements.length === 0}
             >
               <Flag className="h-4 w-4 mr-1" />
               Mark Baseline
             </Button>
-            <Button size="sm" variant="outline" onClick={handleExportRequirements}>
+            <Button size="sm" variant="outline" onClick={handleExportRequirements} disabled={requirements.length === 0}>
               <Download className="h-4 w-4 mr-1" />
               Export
             </Button>
@@ -455,30 +576,32 @@ export function DiscoveryTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by ID, description, owner, or tags..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-9"
-              />
+          {requirements.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by ID, description, owner, or tags..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select
+                value={classificationFilter}
+                onValueChange={handleClassificationChange}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by classification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classifications</SelectItem>
+                  <SelectItem value="fit">Fit</SelectItem>
+                  <SelectItem value="gap">Gap</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={classificationFilter}
-              onValueChange={handleClassificationChange}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by classification" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classifications</SelectItem>
-                <SelectItem value="fit">Fit</SelectItem>
-                <SelectItem value="gap">Gap</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          )}
 
           {showAddRequirement && (
             <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
@@ -624,9 +747,9 @@ export function DiscoveryTab() {
 
           {requirements.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No requirements added yet</p>
-              <p className="text-sm">Click "Add" to get started</p>
+              <Bot className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No requirements yet</p>
+              <p className="text-sm">Upload artifacts and run RTM Agent, or add requirements manually</p>
             </div>
           ) : filteredRequirements.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -765,61 +888,6 @@ export function DiscoveryTab() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Customer Artifacts Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Customer Artifacts</CardTitle>
-          <CardDescription>Upload images, documents, spreadsheets, and other files</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Upload Area */}
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-primary">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Images, Excel, PDF, Word documents</p>
-            </div>
-            <input
-              type="file"
-              className="hidden"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
-              onChange={handleFileUpload}
-            />
-          </label>
-
-          {/* Uploaded Files */}
-          {artifacts.length > 0 && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {artifacts.map((artifact) => (
-                <div
-                  key={artifact.id}
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors group"
-                >
-                  {getFileIcon(artifact.type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{artifact.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(artifact.size)} • {artifact.uploadedAt}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removeArtifact(artifact.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
             </div>
           )}
         </CardContent>

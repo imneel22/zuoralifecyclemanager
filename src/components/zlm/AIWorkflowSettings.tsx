@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Settings, Check, Pencil, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Settings, Check, Pencil, X, Cpu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +37,11 @@ interface AIWorkflowSettingsProps {
 
 export function AIWorkflowSettings({ implementationId }: AIWorkflowSettingsProps) {
   const [workflows, setWorkflows] = useState<WorkflowSetting[]>(defaultWorkflows);
+  const [isOpen, setIsOpen] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<WorkflowSetting | null>(null);
   const [newKey, setNewKey] = useState('');
+
+  const customizedCount = workflows.filter(w => w.status === 'customized').length;
 
   const handleCustomize = (workflow: WorkflowSetting) => {
     setEditingWorkflow(workflow);
@@ -71,15 +73,34 @@ export function AIWorkflowSettings({ implementationId }: AIWorkflowSettingsProps
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
-            AI Workflow Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+      <Button 
+        variant="outline" 
+        className="justify-start h-auto py-3 w-full"
+        onClick={() => setIsOpen(true)}
+      >
+        <Cpu className="mr-2 h-5 w-5 text-primary" />
+        <div className="text-left flex-1">
+          <p className="font-medium text-sm">AI Workflow Settings</p>
+          <p className="text-xs text-muted-foreground">
+            {customizedCount > 0 ? `${customizedCount} customized` : 'All default'}
+          </p>
+        </div>
+        <Settings className="h-4 w-4 text-muted-foreground" />
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Cpu className="h-5 w-5 text-primary" />
+              AI Workflow Settings
+            </DialogTitle>
+            <DialogDescription>
+              Configure AI workflow keys for this project. Customized settings override the default configuration.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
             {workflows.map((workflow) => (
               <div 
                 key={workflow.id}
@@ -122,8 +143,8 @@ export function AIWorkflowSettings({ implementationId }: AIWorkflowSettingsProps
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!editingWorkflow} onOpenChange={() => setEditingWorkflow(null)}>
         <DialogContent>

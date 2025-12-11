@@ -188,9 +188,6 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
             </div>
           </CardContent>
         </Card>
-
-        {/* AI Workflow Settings */}
-        <AIWorkflowSettings implementationId={implementation.id} />
       </div>
 
       {/* Sidebar */}
@@ -202,6 +199,7 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
+              <AIWorkflowSettings implementationId={implementation.id} />
               <Button variant="outline" className="justify-start h-auto py-3" onClick={() => navigate('/product-catalog')}>
                 <Settings className="mr-2 h-5 w-5 text-secondary" />
                 <div className="text-left">

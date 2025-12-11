@@ -486,13 +486,6 @@ export function DiscoveryTab() {
       <Card className="border-primary/20">
         <CardContent className="pt-6">
           <div className="space-y-4">
-            {/* Progress Bar */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Progress</span>
-              <Progress value={progressValue} className="flex-1 h-2" />
-              <span className="text-sm font-medium text-primary">{progressValue}%</span>
-            </div>
-            
             {/* Steps */}
             <div className="flex items-center justify-between">
               {/* Step 1 */}

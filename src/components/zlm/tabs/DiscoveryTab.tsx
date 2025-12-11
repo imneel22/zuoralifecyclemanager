@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search, ChevronLeft, ChevronRight, Bot, CheckCircle2, Circle } from 'lucide-react';
+import { Upload, FileText, Image, FileSpreadsheet, File, X, Plus, Trash2, Download, FileUp, Sparkles, AlertTriangle, Flag, Loader2, Search, ChevronLeft, ChevronRight, Bot, CheckCircle2, Circle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 type RequirementStatus = 'draft' | 'completed';
@@ -128,6 +130,8 @@ export function DiscoveryTab() {
   const [analysisType, setAnalysisType] = useState<'fitgap' | 'aoc' | 'rtm' | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showRTMModal, setShowRTMModal] = useState(false);
+  const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
 
   const filteredRequirements = requirements.filter(req => {
     const matchesSearch = searchQuery === '' || 
@@ -308,16 +312,46 @@ export function DiscoveryTab() {
     event.target.value = '';
   };
 
-  const handleRTMAgent = async () => {
+  const openRTMModal = () => {
     if (artifacts.length === 0) {
       toast({ title: "No artifacts", description: "Upload customer artifacts first to generate requirements", variant: "destructive" });
       return;
     }
+    // Pre-select all artifacts by default
+    setSelectedArtifacts(artifacts.map(a => a.id));
+    setShowRTMModal(true);
+  };
+
+  const toggleArtifactSelection = (artifactId: string) => {
+    setSelectedArtifacts(prev => 
+      prev.includes(artifactId) 
+        ? prev.filter(id => id !== artifactId)
+        : [...prev, artifactId]
+    );
+  };
+
+  const toggleAllArtifacts = () => {
+    if (selectedArtifacts.length === artifacts.length) {
+      setSelectedArtifacts([]);
+    } else {
+      setSelectedArtifacts(artifacts.map(a => a.id));
+    }
+  };
+
+  const handleRTMAgent = async () => {
+    if (selectedArtifacts.length === 0) {
+      toast({ title: "No artifacts selected", description: "Select at least one artifact to analyze", variant: "destructive" });
+      return;
+    }
+    
+    const artifactsToAnalyze = artifacts.filter(a => selectedArtifacts.includes(a.id));
+    
+    setShowRTMModal(false);
     setIsAnalyzing(true);
     setAnalysisType('rtm');
     try {
       const { data, error } = await supabase.functions.invoke('rtm-agent', {
-        body: { artifacts }
+        body: { artifacts: artifactsToAnalyze }
       });
       
       if (error) throw error;
@@ -345,7 +379,7 @@ export function DiscoveryTab() {
         });
         
         setRequirements(prev => [...prev, ...newReqs]);
-        toast({ title: "RTM Analysis Complete", description: `Generated ${newReqs.length} requirements from ${artifacts.length} artifacts` });
+        toast({ title: "RTM Analysis Complete", description: `Generated ${newReqs.length} requirements from ${artifactsToAnalyze.length} artifacts` });
       }
     } catch (error) {
       console.error('RTM agent error:', error);
@@ -571,7 +605,7 @@ export function DiscoveryTab() {
           {artifacts.length > 0 && (
             <div className="flex justify-end pt-2">
               <Button 
-                onClick={handleRTMAgent}
+                onClick={openRTMModal}
                 disabled={isAnalyzing}
                 className="gap-2"
               >
@@ -980,6 +1014,79 @@ export function DiscoveryTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* RTM Agent Artifact Selection Modal */}
+      <Dialog open={showRTMModal} onOpenChange={setShowRTMModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              Run RTM Agent
+            </DialogTitle>
+            <DialogDescription>
+              Select the artifacts you want to include in the requirements analysis.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Select All */}
+            <div className="flex items-center gap-3 pb-3 border-b">
+              <Checkbox
+                id="select-all"
+                checked={selectedArtifacts.length === artifacts.length}
+                onCheckedChange={toggleAllArtifacts}
+              />
+              <label 
+                htmlFor="select-all" 
+                className="text-sm font-medium cursor-pointer flex-1"
+              >
+                Select All ({artifacts.length} artifact{artifacts.length !== 1 ? 's' : ''})
+              </label>
+            </div>
+
+            {/* Artifact List */}
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {artifacts.map((artifact) => (
+                <div
+                  key={artifact.id}
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                    selectedArtifacts.includes(artifact.id) 
+                      ? 'bg-primary/5 border-primary/30' 
+                      : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => toggleArtifactSelection(artifact.id)}
+                >
+                  <Checkbox
+                    checked={selectedArtifacts.includes(artifact.id)}
+                    onCheckedChange={() => toggleArtifactSelection(artifact.id)}
+                  />
+                  {getFileIcon(artifact.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{artifact.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(artifact.size)} • {artifact.uploadedAt}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRTMModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleRTMAgent} 
+              disabled={selectedArtifacts.length === 0}
+              className="gap-2"
+            >
+              <Bot className="h-4 w-4" />
+              Analyze {selectedArtifacts.length} Artifact{selectedArtifacts.length !== 1 ? 's' : ''}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

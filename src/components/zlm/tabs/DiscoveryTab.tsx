@@ -482,66 +482,6 @@ export function DiscoveryTab() {
 
   return (
     <div className="space-y-6">
-      {/* Progress Stepper */}
-      <Card className="border-primary/20">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            {/* Steps */}
-            <div className="flex items-center justify-between">
-              {/* Step 1 */}
-              <div className="flex items-center gap-3">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                  step1Complete 
-                    ? 'bg-primary border-primary text-primary-foreground' 
-                    : 'border-muted-foreground/30 text-muted-foreground'
-                }`}>
-                  {step1Complete ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    <span className="text-sm font-semibold">1</span>
-                  )}
-                </div>
-                <div>
-                  <p className={`text-sm font-medium ${step1Complete ? 'text-primary' : 'text-muted-foreground'}`}>
-                    Customer Artifacts
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {artifacts.length} file{artifacts.length !== 1 ? 's' : ''} uploaded
-                  </p>
-                </div>
-              </div>
-
-              {/* Connector Line */}
-              <div className={`flex-1 h-0.5 mx-4 ${step1Complete ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
-
-              {/* Step 2 */}
-              <div className="flex items-center gap-3">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                  step2Complete 
-                    ? 'bg-primary border-primary text-primary-foreground' 
-                    : step1Complete
-                    ? 'border-primary/50 text-primary'
-                    : 'border-muted-foreground/30 text-muted-foreground'
-                }`}>
-                  {step2Complete ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    <span className="text-sm font-semibold">2</span>
-                  )}
-                </div>
-                <div>
-                  <p className={`text-sm font-medium ${step2Complete ? 'text-primary' : step1Complete ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    Requirements
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {requirements.length} requirement{requirements.length !== 1 ? 's' : ''} generated
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Step 1: Customer Artifacts Section */}
       <Card>

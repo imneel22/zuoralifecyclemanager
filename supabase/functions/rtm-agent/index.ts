@@ -21,7 +21,7 @@ serve(async (req) => {
   }
 
   try {
-    const { artifacts } = await req.json();
+    const { artifacts, existingRequirements } = await req.json();
     
     if (!artifacts || artifacts.length === 0) {
       return new Response(
@@ -50,11 +50,22 @@ For each artifact, identify potential requirements related to:
 - Usage to Bill (metering, consumption tracking, rating)
 - General (reporting, integrations, data migration)
 
-Generate realistic, actionable requirements based on the artifact names and types provided.`;
+Generate realistic, actionable requirements based on the artifact names and types provided.${existingRequirements && existingRequirements.length > 0 ? `
 
-    const userPrompt = `Analyze these customer artifacts and generate a list of requirements:
+IMPORTANT: The customer already has ${existingRequirements.length} existing requirements. When generating new requirements:
+- Avoid duplicating existing requirements
+- Consider relationships with existing requirements
+- Fill gaps not covered by existing requirements
+- You can reference existing requirements as parent requirements if relevant` : ''}`;
 
-${artifactsList}
+    let existingReqContext = '';
+    if (existingRequirements && existingRequirements.length > 0) {
+      existingReqContext = `\n\nExisting Requirements (for reference - do NOT duplicate these):\n${existingRequirements.map((r: any) => `- ${r.reqId}: ${r.description} [${r.section}]`).join('\n')}`;
+    }
+
+    const userPrompt = `Analyze these customer artifacts and generate a list of NEW requirements:
+
+${artifactsList}${existingReqContext}
 
 Return a JSON array of requirements with this structure:
 [
@@ -67,7 +78,7 @@ Return a JSON array of requirements with this structure:
   }
 ]
 
-Generate 3-8 relevant requirements based on the artifacts. Be specific and actionable.`;
+Generate 3-8 relevant NEW requirements based on the artifacts. Be specific and actionable.${existingRequirements && existingRequirements.length > 0 ? ' Do not duplicate any existing requirements.' : ''}`;
 
     console.log('Calling Lovable AI for RTM analysis...');
     

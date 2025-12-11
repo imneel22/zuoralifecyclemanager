@@ -132,6 +132,7 @@ export function DiscoveryTab() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showRTMModal, setShowRTMModal] = useState(false);
   const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
+  const [includeExistingRequirements, setIncludeExistingRequirements] = useState(false);
 
   const filteredRequirements = requirements.filter(req => {
     const matchesSearch = searchQuery === '' || 
@@ -319,6 +320,7 @@ export function DiscoveryTab() {
     }
     // Pre-select all artifacts by default
     setSelectedArtifacts(artifacts.map(a => a.id));
+    setIncludeExistingRequirements(requirements.length > 0);
     setShowRTMModal(true);
   };
 
@@ -351,7 +353,10 @@ export function DiscoveryTab() {
     setAnalysisType('rtm');
     try {
       const { data, error } = await supabase.functions.invoke('rtm-agent', {
-        body: { artifacts: artifactsToAnalyze }
+        body: { 
+          artifacts: artifactsToAnalyze,
+          existingRequirements: includeExistingRequirements ? requirements : undefined
+        }
       });
       
       if (error) throw error;
@@ -1029,7 +1034,28 @@ export function DiscoveryTab() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {/* Select All */}
+            {/* Include Existing Requirements */}
+            {requirements.length > 0 && (
+              <div 
+                className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                  includeExistingRequirements ? 'bg-secondary/10 border-secondary/30' : 'hover:bg-muted/50'
+                }`}
+                onClick={() => setIncludeExistingRequirements(!includeExistingRequirements)}
+              >
+                <Checkbox
+                  checked={includeExistingRequirements}
+                  onCheckedChange={(checked) => setIncludeExistingRequirements(!!checked)}
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Include existing requirements</p>
+                  <p className="text-xs text-muted-foreground">
+                    Send {requirements.length} existing requirement{requirements.length !== 1 ? 's' : ''} as context for analysis
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Select All Artifacts */}
             <div className="flex items-center gap-3 pb-3 border-b">
               <Checkbox
                 id="select-all"
@@ -1040,7 +1066,7 @@ export function DiscoveryTab() {
                 htmlFor="select-all" 
                 className="text-sm font-medium cursor-pointer flex-1"
               >
-                Select All ({artifacts.length} artifact{artifacts.length !== 1 ? 's' : ''})
+                Select All Artifacts ({artifacts.length} file{artifacts.length !== 1 ? 's' : ''})
               </label>
             </div>
 

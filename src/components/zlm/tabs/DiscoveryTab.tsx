@@ -54,6 +54,22 @@ const sections: { value: RequirementSection; label: string }[] = [
 
 const owners = ['Sarah Johnson', 'John Smith', 'Emily Chen', 'Michael Brown', 'Lisa Wang'];
 
+const mockArtifacts: Artifact[] = [
+  { id: '1', name: 'Current_Pricing_Model.xlsx', type: 'spreadsheet', size: 245000, uploadedAt: '2024-01-15' },
+  { id: '2', name: 'Brand_Guidelines.pdf', type: 'document', size: 1200000, uploadedAt: '2024-01-14' },
+  { id: '3', name: 'Invoice_Template.png', type: 'image', size: 89000, uploadedAt: '2024-01-13' },
+  { id: '4', name: 'API_Usage_Report.csv', type: 'spreadsheet', size: 156000, uploadedAt: '2024-01-12' },
+  { id: '5', name: 'Customer_Requirements_Doc.docx', type: 'document', size: 520000, uploadedAt: '2024-01-11' },
+];
+
+const mockRequirements: Requirement[] = [
+  { id: '1', reqId: 'REQ-001', section: 'price_to_offer', description: 'Need to support USD, EUR, and GBP for billing with dynamic currency conversion', status: 'completed', classification: 'fit', priority: 'high', owner: 'Sarah Johnson', parentRequirement: null, tags: ['billing', 'currency'], sourceArtifact: 'Current_Pricing_Model.xlsx' },
+  { id: '2', reqId: 'REQ-002', section: 'order_to_cash', description: 'Branded invoice templates with company logo and custom footer', status: 'draft', classification: 'gap', priority: 'medium', owner: 'John Smith', parentRequirement: 'REQ-001', tags: ['invoice', 'branding'], sourceArtifact: 'Brand_Guidelines.pdf' },
+  { id: '3', reqId: 'REQ-003', section: 'usage_to_bill', description: 'Track API calls and bill based on consumption tiers', status: 'completed', classification: 'fit', priority: 'critical', owner: 'Emily Chen', parentRequirement: null, tags: ['api', 'usage'], sourceArtifact: 'API_Usage_Report.csv' },
+  { id: '4', reqId: 'REQ-004', section: 'lead_to_offer', description: 'CRM integration for lead qualification scoring', status: 'draft', classification: 'gap', priority: 'low', owner: 'Michael Brown', parentRequirement: null, tags: ['crm', 'integration'], sourceArtifact: 'Customer_Requirements_Doc.docx' },
+  { id: '5', reqId: 'REQ-005', section: 'price_to_offer', description: 'Support tiered pricing with volume discounts', status: 'draft', classification: 'fit', priority: 'high', owner: 'Lisa Wang', parentRequirement: null, tags: ['pricing', 'discounts'], sourceArtifact: 'Current_Pricing_Model.xlsx' },
+];
+
 const formatFileSize = (bytes: number) => {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -102,8 +118,8 @@ export function DiscoveryTab() {
   const navigate = useNavigate();
   const { id: implementationId } = useParams();
   const { toast } = useToast();
-  const [requirements, setRequirements] = useState<Requirement[]>([]);
-  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [requirements, setRequirements] = useState<Requirement[]>(mockRequirements);
+  const [artifacts, setArtifacts] = useState<Artifact[]>(mockArtifacts);
   const [showAddRequirement, setShowAddRequirement] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

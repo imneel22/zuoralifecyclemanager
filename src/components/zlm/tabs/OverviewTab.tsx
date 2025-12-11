@@ -189,31 +189,37 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
           </CardContent>
         </Card>
 
+        {/* AI Workflow Settings */}
+        <AIWorkflowSettings implementationId={implementation.id} />
+      </div>
+
+      {/* Sidebar */}
+      <div className="space-y-6">
         {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Button variant="outline" className="justify-start h-auto py-4" onClick={() => navigate('/product-catalog')}>
+            <div className="grid gap-3">
+              <Button variant="outline" className="justify-start h-auto py-3" onClick={() => navigate('/product-catalog')}>
                 <Settings className="mr-2 h-5 w-5 text-secondary" />
                 <div className="text-left">
-                  <p className="font-medium">Configure Products</p>
+                  <p className="font-medium text-sm">Configure Products</p>
                   <p className="text-xs text-muted-foreground">Set up catalog</p>
                 </div>
               </Button>
-              <Button variant="outline" className="justify-start h-auto py-4">
+              <Button variant="outline" className="justify-start h-auto py-3">
                 <Database className="mr-2 h-5 w-5 text-amber-500" />
                 <div className="text-left">
-                  <p className="font-medium">Migrate Data</p>
+                  <p className="font-medium text-sm">Migrate Data</p>
                   <p className="text-xs text-muted-foreground">Import records</p>
                 </div>
               </Button>
-              <Button variant="outline" className="justify-start h-auto py-4">
+              <Button variant="outline" className="justify-start h-auto py-3">
                 <FileText className="mr-2 h-5 w-5 text-purple-500" />
                 <div className="text-left">
-                  <p className="font-medium">View Tasks</p>
+                  <p className="font-medium text-sm">View Tasks</p>
                   <p className="text-xs text-muted-foreground">5 pending</p>
                 </div>
               </Button>
@@ -221,12 +227,6 @@ export function OverviewTab({ implementation }: OverviewTabProps) {
           </CardContent>
         </Card>
 
-        {/* AI Workflow Settings */}
-        <AIWorkflowSettings implementationId={implementation.id} />
-      </div>
-
-      {/* Sidebar */}
-      <div className="space-y-6">
         {/* Team */}
         <Card>
           <CardHeader>

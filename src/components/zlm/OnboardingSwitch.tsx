@@ -1,32 +1,42 @@
 import { useOnboarding, OnboardingType } from '@/contexts/OnboardingContext';
-import { cn } from '@/lib/utils';
-import { DollarSign, TrendingUp } from 'lucide-react';
+import { DollarSign, TrendingUp, ChevronDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function OnboardingSwitch() {
   const { onboardingType, setOnboardingType } = useOnboarding();
 
-  const options: { value: OnboardingType; label: string; icon: React.ReactNode }[] = [
-    { value: 'billing', label: 'Billing', icon: <DollarSign className="h-4 w-4" /> },
-    { value: 'revenue', label: 'Revenue', icon: <TrendingUp className="h-4 w-4" /> },
-  ];
-
   return (
-    <div className="flex items-center bg-muted rounded-lg p-1">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          onClick={() => setOnboardingType(option.value)}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
-            onboardingType === option.value
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
+    <Select value={onboardingType} onValueChange={(value: OnboardingType) => setOnboardingType(value)}>
+      <SelectTrigger className="w-[180px] bg-muted/50 border-0">
+        <div className="flex items-center gap-2">
+          {onboardingType === 'billing' ? (
+            <DollarSign className="h-4 w-4 text-primary" />
+          ) : (
+            <TrendingUp className="h-4 w-4 text-primary" />
           )}
-        >
-          {option.icon}
-          <span>{option.label}</span>
-        </button>
-      ))}
-    </div>
+          <SelectValue />
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="billing">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span>Billing Onboarding</span>
+          </div>
+        </SelectItem>
+        <SelectItem value="revenue">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            <span>Revenue Onboarding</span>
+          </div>
+        </SelectItem>
+      </SelectContent>
+    </Select>
   );
 }

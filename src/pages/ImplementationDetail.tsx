@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Building2, Users, Settings, Database, TestTube, Rocket, Activity, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Calendar, Building2, Users, Settings, Database, TestTube, Rocket, Activity, ClipboardList, Globe, Package, Layers, ShoppingCart, GitBranch, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/zlm/Header';
@@ -15,11 +15,19 @@ import { DataMigrationTab } from '@/components/zlm/tabs/DataMigrationTab';
 import { TestingTab } from '@/components/zlm/tabs/TestingTab';
 import { GoLiveTab } from '@/components/zlm/tabs/GoLiveTab';
 import { ActivityTab } from '@/components/zlm/tabs/ActivityTab';
+import { TenantConfigurationTab } from '@/components/zlm/tabs/revenue/TenantConfigurationTab';
+import { WhatTheySellTab } from '@/components/zlm/tabs/revenue/WhatTheySellTab';
+import { CustomFieldsTab } from '@/components/zlm/tabs/revenue/CustomFieldsTab';
+import { HowTheySellTab } from '@/components/zlm/tabs/revenue/HowTheySellTab';
+import { ChangeManagerTab } from '@/components/zlm/tabs/revenue/ChangeManagerTab';
+import { UseCasesTab } from '@/components/zlm/tabs/revenue/UseCasesTab';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { cn } from '@/lib/utils';
 
 export default function ImplementationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { onboardingType } = useOnboarding();
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl === 'discovery' ? 'tasks' : 'overview');
@@ -29,6 +37,11 @@ export default function ImplementationDetail() {
       setActiveTab('tasks');
     }
   }, [tabFromUrl]);
+
+  // Reset to overview when switching onboarding types
+  useEffect(() => {
+    setActiveTab('overview');
+  }, [onboardingType]);
 
   const implementation = mockImplementations.find((impl) => impl.id === id);
 
@@ -43,7 +56,8 @@ export default function ImplementationDetail() {
     );
   }
 
-  const tabs = [
+  // Billing navigation tabs
+  const billingTabs = [
     { id: 'overview', label: 'Overview', icon: Building2 },
     { id: 'tasks', label: 'Discovery', icon: ClipboardList },
     { id: 'configuration', label: 'Configuration', icon: Settings },
@@ -53,24 +67,59 @@ export default function ImplementationDetail() {
     { id: 'activity', label: 'Activity', icon: Activity },
   ];
 
+  // Revenue navigation tabs
+  const revenueTabs = [
+    { id: 'overview', label: 'Overview', icon: Building2 },
+    { id: 'tenant-config', label: 'Tenant Level Configuration', icon: Globe },
+    { id: 'what-they-sell', label: 'What They Sell', icon: Package },
+    { id: 'custom-fields', label: 'Custom Fields', icon: Layers },
+    { id: 'how-they-sell', label: 'How They Sell', icon: ShoppingCart },
+    { id: 'change-manager', label: 'Change Manager', icon: GitBranch },
+    { id: 'use-cases', label: 'Use Cases', icon: Lightbulb },
+  ];
+
+  const tabs = onboardingType === 'billing' ? billingTabs : revenueTabs;
+
   const renderContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return <OverviewTab implementation={implementation} />;
-      case 'tasks':
-        return <DiscoveryTab />;
-      case 'configuration':
-        return <ConfigurationTab />;
-      case 'migration':
-        return <DataMigrationTab />;
-      case 'testing':
-        return <TestingTab />;
-      case 'golive':
-        return <GoLiveTab />;
-      case 'activity':
-        return <ActivityTab activities={mockActivities} />;
-      default:
-        return <OverviewTab implementation={implementation} />;
+    if (onboardingType === 'billing') {
+      switch (activeTab) {
+        case 'overview':
+          return <OverviewTab implementation={implementation} />;
+        case 'tasks':
+          return <DiscoveryTab />;
+        case 'configuration':
+          return <ConfigurationTab />;
+        case 'migration':
+          return <DataMigrationTab />;
+        case 'testing':
+          return <TestingTab />;
+        case 'golive':
+          return <GoLiveTab />;
+        case 'activity':
+          return <ActivityTab activities={mockActivities} />;
+        default:
+          return <OverviewTab implementation={implementation} />;
+      }
+    } else {
+      // Revenue tabs
+      switch (activeTab) {
+        case 'overview':
+          return <OverviewTab implementation={implementation} />;
+        case 'tenant-config':
+          return <TenantConfigurationTab />;
+        case 'what-they-sell':
+          return <WhatTheySellTab />;
+        case 'custom-fields':
+          return <CustomFieldsTab />;
+        case 'how-they-sell':
+          return <HowTheySellTab />;
+        case 'change-manager':
+          return <ChangeManagerTab />;
+        case 'use-cases':
+          return <UseCasesTab />;
+        default:
+          return <OverviewTab implementation={implementation} />;
+      }
     }
   };
 

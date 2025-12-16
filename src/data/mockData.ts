@@ -1,5 +1,6 @@
 import { Implementation, Task, Activity, MigrationFile, FieldMapping, GoLiveMetric, Alert, TeamMember } from '@/types/zlm';
 
+// Billing Team Members
 export const mockTeamMembers: TeamMember[] = [
   { id: '1', name: 'Sarah Chen', role: 'Implementation Lead', email: 'sarah.chen@zuora.com' },
   { id: '2', name: 'Michael Torres', role: 'Technical Consultant', email: 'michael.torres@zuora.com' },
@@ -8,7 +9,17 @@ export const mockTeamMembers: TeamMember[] = [
   { id: '5', name: 'Lisa Park', role: 'QA Engineer', email: 'lisa.park@zuora.com' },
 ];
 
-export const mockImplementations: Implementation[] = [
+// Revenue Team Members
+export const revenueTeamMembers: TeamMember[] = [
+  { id: 'r1', name: 'David Martinez', role: 'Revenue Recognition Lead', email: 'david.martinez@zuora.com' },
+  { id: 'r2', name: 'Rachel Green', role: 'ASC 606 Specialist', email: 'rachel.green@zuora.com' },
+  { id: 'r3', name: 'Kevin O\'Brien', role: 'Revenue Analyst', email: 'kevin.obrien@zuora.com' },
+  { id: 'r4', name: 'Amanda Liu', role: 'GL Integration Specialist', email: 'amanda.liu@zuora.com' },
+  { id: 'r5', name: 'Chris Taylor', role: 'Audit & Compliance Lead', email: 'chris.taylor@zuora.com' },
+];
+
+// Billing Implementations
+export const billingImplementations: Implementation[] = [
   {
     id: '1',
     customerName: 'Acme Corporation',
@@ -25,6 +36,7 @@ export const mockImplementations: Implementation[] = [
     arr: 2500000,
     businessModel: 'hybrid',
     projectDescription: 'Migration from legacy billing system to Zuora with hybrid pricing model combining subscription and usage-based charges for their SaaS platform.',
+    onboardingType: 'billing',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-15', endDate: '2024-01-28', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-29', status: 'in_progress' },
@@ -49,6 +61,7 @@ export const mockImplementations: Implementation[] = [
     arr: 1800000,
     businessModel: 'subscription',
     projectDescription: 'Implementing tiered subscription billing for industrial IoT platform with volume-based pricing across multiple product lines.',
+    onboardingType: 'billing',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-20', endDate: '2024-01-30', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-31', endDate: '2024-02-10', status: 'completed' },
@@ -73,6 +86,7 @@ export const mockImplementations: Implementation[] = [
     arr: 5200000,
     businessModel: 'subscription',
     projectDescription: 'Enterprise subscription billing implementation for wealth management platform with complex revenue recognition requirements.',
+    onboardingType: 'billing',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-01-10', endDate: '2024-01-18', status: 'completed' },
       { phase: 'configuration', startDate: '2024-01-19', endDate: '2024-01-31', status: 'completed' },
@@ -97,6 +111,7 @@ export const mockImplementations: Implementation[] = [
     arr: 890000,
     businessModel: 'usage',
     projectDescription: 'Usage-based billing implementation for streaming platform with freemium tier and consumption-based pricing for premium features.',
+    onboardingType: 'billing',
     phaseDates: [
       { phase: 'discovery', startDate: '2024-02-01', status: 'in_progress' },
       { phase: 'configuration', status: 'pending' },
@@ -121,6 +136,7 @@ export const mockImplementations: Implementation[] = [
     arr: 3400000,
     businessModel: 'hybrid',
     projectDescription: 'Healthcare SaaS billing transformation with per-patient pricing and subscription bundles for clinics and hospital systems.',
+    onboardingType: 'billing',
     phaseDates: [
       { phase: 'discovery', startDate: '2023-12-01', endDate: '2023-12-15', status: 'completed' },
       { phase: 'configuration', startDate: '2023-12-16', endDate: '2024-01-10', status: 'completed' },
@@ -130,6 +146,113 @@ export const mockImplementations: Implementation[] = [
     ],
   },
 ];
+
+// Revenue Implementations
+export const revenueImplementations: Implementation[] = [
+  {
+    id: 'r1',
+    customerName: 'TechVentures Global',
+    sfdcOpportunityId: 'OPP-REV-2024-001',
+    targetGoLive: '2024-04-15',
+    currentPhase: 'configuration',
+    healthScore: { overall: 88, timeline: 92, quality: 85, engagement: 87 },
+    daysToGoLive: 52,
+    team: [revenueTeamMembers[0], revenueTeamMembers[1], revenueTeamMembers[3]],
+    industry: 'Technology',
+    productTypes: ['ASC 606', 'Multi-Element'],
+    createdAt: '2024-01-20',
+    updatedAt: '2024-02-10',
+    arr: 4200000,
+    businessModel: 'hybrid',
+    projectDescription: 'ASC 606 compliance implementation with multi-element arrangement revenue recognition and automated journal entries.',
+    onboardingType: 'revenue',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-01-20', endDate: '2024-02-05', status: 'completed' },
+      { phase: 'configuration', startDate: '2024-02-06', status: 'in_progress' },
+      { phase: 'migration', status: 'pending' },
+      { phase: 'testing', status: 'pending' },
+      { phase: 'golive', status: 'pending' },
+    ],
+  },
+  {
+    id: 'r2',
+    customerName: 'Enterprise Software Co',
+    sfdcOpportunityId: 'OPP-REV-2024-002',
+    targetGoLive: '2024-03-28',
+    currentPhase: 'testing',
+    healthScore: { overall: 79, timeline: 72, quality: 84, engagement: 81 },
+    daysToGoLive: 35,
+    team: [revenueTeamMembers[1], revenueTeamMembers[4]],
+    industry: 'Software',
+    productTypes: ['Contract Modifications', 'Variable Consideration'],
+    createdAt: '2024-01-05',
+    updatedAt: '2024-02-12',
+    arr: 6800000,
+    businessModel: 'subscription',
+    projectDescription: 'Revenue recognition automation for complex software licensing with variable consideration and contract modification handling.',
+    onboardingType: 'revenue',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-01-05', endDate: '2024-01-18', status: 'completed' },
+      { phase: 'configuration', startDate: '2024-01-19', endDate: '2024-02-02', status: 'completed' },
+      { phase: 'migration', startDate: '2024-02-03', endDate: '2024-02-15', status: 'completed' },
+      { phase: 'testing', startDate: '2024-02-16', status: 'in_progress' },
+      { phase: 'golive', status: 'pending' },
+    ],
+  },
+  {
+    id: 'r3',
+    customerName: 'CloudFirst Solutions',
+    sfdcOpportunityId: 'OPP-REV-2024-003',
+    targetGoLive: '2024-05-01',
+    currentPhase: 'discovery',
+    healthScore: { overall: 65, timeline: 58, quality: 70, engagement: 67 },
+    daysToGoLive: 78,
+    team: [revenueTeamMembers[0], revenueTeamMembers[2]],
+    industry: 'Cloud Services',
+    productTypes: ['SSP Analysis', 'Performance Obligations'],
+    createdAt: '2024-02-08',
+    updatedAt: '2024-02-14',
+    arr: 3100000,
+    businessModel: 'usage',
+    projectDescription: 'Standalone selling price analysis and performance obligation allocation for cloud services with usage-based components.',
+    onboardingType: 'revenue',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2024-02-08', status: 'in_progress' },
+      { phase: 'configuration', status: 'pending' },
+      { phase: 'migration', status: 'pending' },
+      { phase: 'testing', status: 'pending' },
+      { phase: 'golive', status: 'pending' },
+    ],
+  },
+  {
+    id: 'r4',
+    customerName: 'DataPro Analytics',
+    sfdcOpportunityId: 'OPP-REV-2024-004',
+    targetGoLive: '2024-03-20',
+    currentPhase: 'golive',
+    healthScore: { overall: 94, timeline: 96, quality: 92, engagement: 94 },
+    daysToGoLive: 8,
+    team: [revenueTeamMembers[0], revenueTeamMembers[3], revenueTeamMembers[4]],
+    industry: 'Analytics',
+    productTypes: ['GL Integration', 'Audit Trail'],
+    createdAt: '2023-11-15',
+    updatedAt: '2024-02-15',
+    arr: 2900000,
+    businessModel: 'subscription',
+    projectDescription: 'Full GL integration with automated journal entries and comprehensive audit trail for SOX compliance.',
+    onboardingType: 'revenue',
+    phaseDates: [
+      { phase: 'discovery', startDate: '2023-11-15', endDate: '2023-12-01', status: 'completed' },
+      { phase: 'configuration', startDate: '2023-12-02', endDate: '2024-01-10', status: 'completed' },
+      { phase: 'migration', startDate: '2024-01-11', endDate: '2024-02-05', status: 'completed' },
+      { phase: 'testing', startDate: '2024-02-06', endDate: '2024-02-28', status: 'completed' },
+      { phase: 'golive', startDate: '2024-03-01', status: 'in_progress' },
+    ],
+  },
+];
+
+// Combined implementations for backward compatibility
+export const mockImplementations: Implementation[] = [...billingImplementations, ...revenueImplementations];
 
 export const mockTasks: Task[] = [
   {
@@ -245,11 +368,20 @@ export const mockFieldMappings: FieldMapping[] = [
   { sourceField: 'payment_term', targetField: 'PaymentTerm', confidence: 72, status: 'manual' },
 ];
 
+// Billing Go-Live Metrics
 export const mockGoLiveMetrics: GoLiveMetric[] = [
   { label: 'Active Subscriptions', value: 1247, change: 12.5, changeType: 'positive' },
   { label: 'Invoices Generated', value: 892, change: 8.3, changeType: 'positive' },
   { label: 'Payments Processed', value: 756, change: -2.1, changeType: 'negative', unit: '$' },
   { label: 'API Latency', value: 145, change: -15.2, changeType: 'positive', unit: 'ms' },
+];
+
+// Revenue Go-Live Metrics
+export const revenueGoLiveMetrics: GoLiveMetric[] = [
+  { label: 'Revenue Recognized', value: 2840000, change: 8.2, changeType: 'positive', unit: '$' },
+  { label: 'Deferred Revenue', value: 1560000, change: -3.5, changeType: 'neutral', unit: '$' },
+  { label: 'Journal Entries', value: 428, change: 15.7, changeType: 'positive' },
+  { label: 'Compliance Score', value: 98, change: 2.1, changeType: 'positive', unit: '%' },
 ];
 
 export const mockAlerts: Alert[] = [
@@ -297,6 +429,17 @@ export const productTypes = [
   'Per-Unit',
   'Freemium',
   'One-Time',
+];
+
+export const revenueProductTypes = [
+  'ASC 606',
+  'Multi-Element',
+  'Contract Modifications',
+  'Variable Consideration',
+  'SSP Analysis',
+  'Performance Obligations',
+  'GL Integration',
+  'Audit Trail',
 ];
 
 export const chargingMethods = [

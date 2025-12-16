@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
+import { OnboardingSwitch } from './OnboardingSwitch';
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -37,6 +38,8 @@ export function Header({ showSearch = true, searchValue = '', onSearchChange }: 
             </div>
             <span className="font-semibold text-lg">Lifecycle Manager</span>
           </div>
+          
+          <OnboardingSwitch />
           
           {showSearch && (
             <div className="relative w-80 hidden md:block">

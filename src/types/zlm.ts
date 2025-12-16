@@ -2,6 +2,8 @@ export type HealthStatus = 'green' | 'amber' | 'red';
 
 export type Phase = 'discovery' | 'configuration' | 'migration' | 'testing' | 'golive';
 
+export type OnboardingType = 'billing' | 'revenue';
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -43,6 +45,7 @@ export interface Implementation {
   businessModel?: BusinessModel;
   phaseDates?: PhaseDate[];
   projectDescription?: string;
+  onboardingType: OnboardingType;
 }
 
 export interface Task {

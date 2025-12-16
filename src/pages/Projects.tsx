@@ -9,15 +9,19 @@ import { AppSidebar } from '@/components/zlm/AppSidebar';
 import { HealthScoreRing } from '@/components/zlm/HealthScoreRing';
 import { PhaseBadge } from '@/components/zlm/PhaseBadge';
 import { TeamAvatars } from '@/components/zlm/TeamAvatars';
-import { mockImplementations } from '@/data/mockData';
+import { billingImplementations, revenueImplementations } from '@/data/mockData';
 import { HealthStatus } from '@/types/zlm';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export default function Projects() {
   const navigate = useNavigate();
+  const { onboardingType } = useOnboarding();
   const [searchQuery, setSearchQuery] = useState('');
   const [phaseFilter, setPhaseFilter] = useState<string>('all');
   const [healthFilter, setHealthFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('daysToGoLive');
+
+  const implementations = onboardingType === 'billing' ? billingImplementations : revenueImplementations;
 
   const getHealthStatus = (score: number): HealthStatus => {
     if (score >= 80) return 'green';
@@ -25,7 +29,7 @@ export default function Projects() {
     return 'red';
   };
 
-  const filteredImplementations = mockImplementations
+  const filteredImplementations = implementations
     .filter((impl) => {
       const matchesSearch = impl.customerName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesPhase = phaseFilter === 'all' || impl.currentPhase === phaseFilter;
@@ -58,9 +62,11 @@ export default function Projects() {
         <main className="flex-1 p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Projects</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                {onboardingType === 'billing' ? 'Billing' : 'Revenue'} Projects
+              </h1>
               <p className="text-muted-foreground">
-                {filteredImplementations.length} active implementations
+                {filteredImplementations.length} active {onboardingType} implementations
               </p>
             </div>
             

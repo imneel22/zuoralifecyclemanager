@@ -291,6 +291,10 @@ function BillingOverview({ implementation }: OverviewTabProps) {
       </div>
 
       <div className="space-y-6">
+        {/* AI Chat Panel - At the top */}
+        <AIChatPanel implementation={implementation} />
+
+        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -323,6 +327,7 @@ function BillingOverview({ implementation }: OverviewTabProps) {
           </CardContent>
         </Card>
 
+        {/* Team */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Team Members</CardTitle>
@@ -346,6 +351,7 @@ function BillingOverview({ implementation }: OverviewTabProps) {
           </CardContent>
         </Card>
 
+        {/* Key Dates */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Key Dates</CardTitle>
@@ -367,8 +373,6 @@ function BillingOverview({ implementation }: OverviewTabProps) {
             </div>
           </CardContent>
         </Card>
-
-        <AIChatPanel implementation={implementation} />
       </div>
     </div>
   );

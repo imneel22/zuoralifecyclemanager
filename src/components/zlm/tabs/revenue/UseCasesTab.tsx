@@ -1,167 +1,201 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Lightbulb, CheckCircle2, Clock, AlertCircle, ChevronRight } from 'lucide-react';
+import { RefreshCw, TrendingUp, Layers, ArrowRight, Package, Settings, FileText, Briefcase } from 'lucide-react';
 
-const mockUseCases = [
-  { 
-    id: '1', 
-    name: 'New Customer Subscription', 
-    description: 'Standard subscription onboarding with implementation services',
-    category: 'Subscription',
-    completeness: 100,
-    status: 'Complete'
+interface UseCase {
+  id: string;
+  rank: number;
+  name: string;
+  useCaseCount: number;
+  sampleSubscriptions: string[];
+  color: string;
+  barColor: string;
+}
+
+const mockUseCases: UseCase[] = [
+  {
+    id: '1',
+    rank: 1,
+    name: 'Subscription - Saasmediafranchise',
+    useCaseCount: 9,
+    sampleSubscriptions: ['A-S00064681', 'A-S00063082', 'A-S00059913'],
+    color: 'from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800',
+    barColor: 'bg-blue-100 dark:bg-blue-900/50',
   },
-  { 
-    id: '2', 
-    name: 'Contract Modification - Upgrade', 
-    description: 'Customer upgrades mid-contract with prorated billing',
-    category: 'Modification',
-    completeness: 85,
-    status: 'In Progress'
+  {
+    id: '2',
+    rank: 2,
+    name: 'Onetime Setup And Onboarding',
+    useCaseCount: 5,
+    sampleSubscriptions: ['A-S00064681', 'A-S00059913', 'A-S00064132'],
+    color: 'from-cyan-50 to-cyan-100 dark:from-cyan-950/30 dark:to-cyan-900/20 border-cyan-200 dark:border-cyan-800',
+    barColor: 'bg-cyan-100 dark:bg-cyan-900/50',
   },
-  { 
-    id: '3', 
-    name: 'Multi-Element Arrangement', 
-    description: 'Bundle with license, services, and support',
-    category: 'Bundle',
-    completeness: 70,
-    status: 'In Progress'
+  {
+    id: '3',
+    rank: 3,
+    name: 'Termed Professional Services Professional Mainten',
+    useCaseCount: 2,
+    sampleSubscriptions: ['A-S00059913', 'A-S00063149'],
+    color: 'from-pink-50 to-pink-100 dark:from-pink-950/30 dark:to-pink-900/20 border-pink-200 dark:border-pink-800',
+    barColor: 'bg-pink-100 dark:bg-pink-900/50',
   },
-  { 
-    id: '4', 
-    name: 'Usage-Based Revenue', 
-    description: 'Variable consideration with usage tiers',
-    category: 'Usage',
-    completeness: 45,
-    status: 'In Progress'
+  {
+    id: '4',
+    rank: 4,
+    name: 'Prof Services Milestone',
+    useCaseCount: 1,
+    sampleSubscriptions: ['A-S00064681'],
+    color: 'from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800',
+    barColor: 'bg-amber-100 dark:bg-amber-900/50',
   },
-  { 
-    id: '5', 
-    name: 'Contract Termination', 
-    description: 'Early termination with refund handling',
-    category: 'Termination',
-    completeness: 0,
-    status: 'Not Started'
+  {
+    id: '5',
+    rank: 5,
+    name: 'Software License Termed Symbolic Ip',
+    useCaseCount: 1,
+    sampleSubscriptions: ['A-S00064681'],
+    color: 'from-indigo-50 to-indigo-100 dark:from-indigo-950/30 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-800',
+    barColor: 'bg-indigo-100 dark:bg-indigo-900/50',
   },
-  { 
-    id: '6', 
-    name: 'Renewal Processing', 
-    description: 'Auto-renewal with price escalation',
-    category: 'Renewal',
-    completeness: 30,
-    status: 'In Progress'
+  {
+    id: '6',
+    rank: 6,
+    name: 'True Up Charges Prepaid Drawdown Minimum Commit',
+    useCaseCount: 1,
+    sampleSubscriptions: ['A-S00064681'],
+    color: 'from-rose-50 to-rose-100 dark:from-rose-950/30 dark:to-rose-900/20 border-rose-200 dark:border-rose-800',
+    barColor: 'bg-rose-100 dark:bg-rose-900/50',
+  },
+  {
+    id: '7',
+    rank: 7,
+    name: 'Prof Services Tm',
+    useCaseCount: 1,
+    sampleSubscriptions: ['A-S00064132'],
+    color: 'from-violet-50 to-violet-100 dark:from-violet-950/30 dark:to-violet-900/20 border-violet-200 dark:border-violet-800',
+    barColor: 'bg-violet-100 dark:bg-violet-900/50',
+  },
+  {
+    id: '8',
+    rank: 8,
+    name: 'Single Outcome Based Services Audit Assessment Da',
+    useCaseCount: 1,
+    sampleSubscriptions: ['A-S00063149'],
+    color: 'from-teal-50 to-teal-100 dark:from-teal-950/30 dark:to-teal-900/20 border-teal-200 dark:border-teal-800',
+    barColor: 'bg-teal-100 dark:bg-teal-900/50',
   },
 ];
 
+const getIcon = (rank: number) => {
+  switch (rank % 4) {
+    case 1: return <Package className="h-5 w-5 text-muted-foreground" />;
+    case 2: return <Settings className="h-5 w-5 text-muted-foreground" />;
+    case 3: return <FileText className="h-5 w-5 text-muted-foreground" />;
+    default: return <Briefcase className="h-5 w-5 text-muted-foreground" />;
+  }
+};
+
 export function UseCasesTab() {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Complete':
-        return <Badge variant="default" className="bg-green-500">Complete</Badge>;
-      case 'In Progress':
-        return <Badge variant="secondary">In Progress</Badge>;
-      case 'Not Started':
-        return <Badge variant="outline">Not Started</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Complete':
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case 'In Progress':
-        return <Clock className="h-5 w-5 text-amber-500" />;
-      case 'Not Started':
-        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
-      default:
-        return null;
-    }
-  };
-
-  const totalUseCases = mockUseCases.length;
-  const completedUseCases = mockUseCases.filter(u => u.status === 'Complete').length;
-  const overallProgress = Math.round(mockUseCases.reduce((sum, u) => sum + u.completeness, 0) / totalUseCases);
+  const productFamiliesCount = 8;
+  const subscriptionsAsUseCases = 10;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Use Cases</h2>
-          <p className="text-muted-foreground">Track business scenario implementation progress</p>
+        <div className="flex items-center gap-2">
+          <Settings className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold">Product Families & Use Cases</h2>
         </div>
-        <Button className="gap-2">
-          <Lightbulb className="h-4 w-4" />
-          Add Use Case
+        <Button variant="ghost" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Refresh Data
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{totalUseCases}</div>
-            <p className="text-sm text-muted-foreground">Total Use Cases</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">{completedUseCases}</div>
-            <p className="text-sm text-muted-foreground">Completed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-amber-600">
-              {mockUseCases.filter(u => u.status === 'In Progress').length}
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="py-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{productFamiliesCount}</div>
+                <p className="text-sm text-muted-foreground">Product Families</p>
+              </div>
+              <TrendingUp className="h-6 w-6 text-blue-400" />
             </div>
-            <p className="text-sm text-muted-foreground">In Progress</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-primary">{overallProgress}%</div>
-            <p className="text-sm text-muted-foreground">Overall Progress</p>
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
+          <CardContent className="py-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400">{subscriptionsAsUseCases}</div>
+                <p className="text-sm text-muted-foreground">Subscriptions as Use Cases</p>
+              </div>
+              <Layers className="h-6 w-6 text-green-400" />
+            </div>
+            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-3">
+              Click to view all use case subscriptions
+              <ArrowRight className="h-3 w-3" />
+            </button>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Business Scenarios</CardTitle>
-          </div>
-          <CardDescription>Implementation progress for each use case</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {mockUseCases.map((useCase) => (
-              <div 
-                key={useCase.id} 
-                className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                {getStatusIcon(useCase.status)}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{useCase.name}</h4>
-                    <Badge variant="outline" className="text-xs">{useCase.category}</Badge>
+      {/* Use Case Cards Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {mockUseCases.map((useCase) => {
+          const extraCount = Math.max(0, useCase.sampleSubscriptions.length - 3 + (useCase.useCaseCount > useCase.sampleSubscriptions.length ? useCase.useCaseCount - useCase.sampleSubscriptions.length : 0));
+          const displayedSubs = useCase.sampleSubscriptions.slice(0, 3);
+          
+          return (
+            <Card key={useCase.id} className={`bg-gradient-to-br ${useCase.color}`}>
+              <CardContent className="p-4 space-y-3">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    {getIcon(useCase.rank)}
+                    <div>
+                      <h3 className="font-semibold text-sm leading-tight">{useCase.name}</h3>
+                      <p className="text-xs text-muted-foreground">Product Family</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">{useCase.description}</p>
-                  <div className="flex items-center gap-3">
-                    <Progress value={useCase.completeness} className="flex-1 h-2" />
-                    <span className="text-sm font-medium w-12">{useCase.completeness}%</span>
+                  <span className="text-xs text-muted-foreground font-medium">#{useCase.rank}</span>
+                </div>
+
+                {/* Use Case Count */}
+                <div className={`${useCase.barColor} rounded-lg py-3 text-center`}>
+                  <div className="text-2xl font-bold text-primary">{useCase.useCaseCount}</div>
+                  <p className="text-xs text-muted-foreground">Use Cases</p>
+                </div>
+
+                {/* Sample Subscriptions */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Sample Subscriptions:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {displayedSubs.map((sub, idx) => (
+                      <span key={idx} className="text-xs font-mono bg-background/60 px-2 py-0.5 rounded">
+                        {sub}
+                      </span>
+                    ))}
+                    {extraCount > 0 && (
+                      <span className="text-xs text-muted-foreground">+{extraCount} more</span>
+                    )}
                   </div>
                 </div>
-                {getStatusBadge(useCase.status)}
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
+                {/* Footer Link */}
+                <button className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-primary w-full pt-2 border-t">
+                  Click to view all subscriptions
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

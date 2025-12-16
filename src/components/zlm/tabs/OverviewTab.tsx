@@ -171,20 +171,46 @@ function BillingOverview({ implementation }: OverviewTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Row: AI Chat + Quick Actions & Team side by side */}
+      {/* Top Row: Customer Info + Quick Actions & Team */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* AI Chat Panel */}
-        <Card className="flex flex-col">
+        {/* Customer Information */}
+        <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Ask About This Customer</CardTitle>
-            </div>
+            <CardTitle className="text-base">Customer Information</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <AIChatPanelCompact implementation={implementation} />
+          <CardContent>
+            <dl className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-muted-foreground">SFDC Opportunity</dt>
+                <dd className="font-medium text-sm">{implementation.sfdcOpportunityId}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Industry</dt>
+                <dd className="font-medium text-sm">{implementation.industry}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">ARR</dt>
+                <dd className="font-medium text-sm text-green-600">
+                  {implementation.arr ? formatCurrency(implementation.arr) : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Business Model</dt>
+                <dd>
+                  <Badge variant="secondary" className="text-xs">
+                    {implementation.businessModel ? businessModelLabels[implementation.businessModel] : '—'}
+                  </Badge>
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">Product Types</dt>
+                <dd className="font-medium text-sm">{implementation.productTypes.join(', ')}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">Description</dt>
+                <dd className="text-sm text-muted-foreground">{implementation.projectDescription || '—'}</dd>
+              </div>
+            </dl>
           </CardContent>
         </Card>
 
@@ -264,49 +290,8 @@ function BillingOverview({ implementation }: OverviewTabProps) {
         onAccept={() => console.log('Accepted recommendation')}
       />
 
-      {/* Bottom Row: Customer Info + Timeline */}
+      {/* Middle Row: Timeline + AI Chat */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Customer Information */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Customer Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <dt className="text-xs text-muted-foreground">SFDC Opportunity</dt>
-                <dd className="font-medium text-sm">{implementation.sfdcOpportunityId}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Industry</dt>
-                <dd className="font-medium text-sm">{implementation.industry}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">ARR</dt>
-                <dd className="font-medium text-sm text-green-600">
-                  {implementation.arr ? formatCurrency(implementation.arr) : '—'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Business Model</dt>
-                <dd>
-                  <Badge variant="secondary" className="text-xs">
-                    {implementation.businessModel ? businessModelLabels[implementation.businessModel] : '—'}
-                  </Badge>
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs text-muted-foreground">Product Types</dt>
-                <dd className="font-medium text-sm">{implementation.productTypes.join(', ')}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs text-muted-foreground">Description</dt>
-                <dd className="text-sm text-muted-foreground">{implementation.projectDescription || '—'}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
         {/* Implementation Timeline */}
         <Card>
           <CardHeader className="pb-3">
@@ -346,6 +331,21 @@ function BillingOverview({ implementation }: OverviewTabProps) {
                 );
               })}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Chat Panel */}
+        <Card className="flex flex-col">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Ask About This Customer</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col">
+            <AIChatPanelCompact implementation={implementation} />
           </CardContent>
         </Card>
       </div>

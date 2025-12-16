@@ -1,126 +1,139 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { DollarSign, Grid3X3, BarChart3, Search, RefreshCw } from 'lucide-react';
 
-const mockProducts = [
-  { id: '1', name: 'Enterprise License', type: 'License', revenueType: 'Over Time', ssp: '$50,000', status: 'Active' },
-  { id: '2', name: 'Implementation Services', type: 'Service', revenueType: 'Over Time', ssp: '$25,000', status: 'Active' },
-  { id: '3', name: 'Annual Support', type: 'Support', revenueType: 'Over Time', ssp: '$12,000', status: 'Active' },
-  { id: '4', name: 'Training Package', type: 'Service', revenueType: 'Point in Time', ssp: '$5,000', status: 'Active' },
-  { id: '5', name: 'Data Migration', type: 'Service', revenueType: 'Point in Time', ssp: '$15,000', status: 'Draft' },
+const mockProductTypes = [
+  { id: '1', name: 'Subscription including SaaS/Media/Franchise', charges: 109, high: 109, med: 0, low: 0 },
+  { id: '2', name: 'One-Time Setup and On-Boarding', charges: 14, high: 5, med: 5, low: 4 },
+  { id: '3', name: 'Software License (Termed) (Symbolic IP)', charges: 9, high: 9, med: 0, low: 0 },
+  { id: '4', name: 'Prof services - Milestone', charges: 5, high: 1, med: 4, low: 0 },
+  { id: '5', name: 'Termed Professional Services (Professional/Maintenance/Support Services)', charges: 4, high: 3, med: 1, low: 0 },
+  { id: '6', name: 'Prof services - T&M', charges: 2, high: 2, med: 0, low: 0 },
+  { id: '7', name: 'True Up Charges / Prepaid Drawdown / Minimum Commit', charges: 2, high: 0, med: 2, low: 0 },
+  { id: '8', name: 'Single Outcome Based services (Audit, Assessment, Data Migration, Screening, Verification)', charges: 2, high: 1, med: 1, low: 0 },
 ];
 
 export function WhatTheySellTab() {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProducts = mockProducts.filter(p => 
+  const filteredProducts = mockProductTypes.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalCharges = mockProductTypes.reduce((sum, p) => sum + p.charges, 0);
+  const totalHigh = mockProductTypes.reduce((sum, p) => sum + p.high, 0);
+  const totalMed = mockProductTypes.reduce((sum, p) => sum + p.med, 0);
+  const totalLow = mockProductTypes.reduce((sum, p) => sum + p.low, 0);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">What They Sell</h2>
-          <p className="text-muted-foreground">Define products and performance obligations</p>
-        </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Button>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-primary/30 border-2">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-sm text-muted-foreground">Total Products</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">4</div>
-            <p className="text-sm text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-amber-600">1</div>
-            <p className="text-sm text-muted-foreground">Draft</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-primary">3</div>
-            <p className="text-sm text-muted-foreground">Performance Obligations</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Products & Services</CardTitle>
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Charges</p>
+                <div className="text-3xl font-bold mt-1">{totalCharges}</div>
+                <p className="text-sm text-primary mt-1">Revenue recognition items</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/30 border-2">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Types</p>
+                <div className="text-3xl font-bold mt-1">{mockProductTypes.length}</div>
+                <p className="text-sm text-primary mt-1">Unique categories identified</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Grid3X3 className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-300 border-2">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Confidence Analysis</p>
+                <p className="text-xs text-orange-500 mt-1">AI classification confidence</p>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-primary">{totalHigh}</span>
+                    <p className="text-xs text-muted-foreground">High</p>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-muted-foreground">{totalMed}</span>
+                    <p className="text-xs text-muted-foreground">Medium</p>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-destructive">{totalLow}</span>
+                    <p className="text-xs text-muted-foreground">Low</p>
+                  </div>
+                </div>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-orange-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Product Types Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Product Types</h2>
+          <div className="flex items-center gap-2">
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products..."
+                placeholder="Search charges..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
+            <Button variant="outline" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Revenue Recognition</TableHead>
-                <TableHead>SSP</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-20">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{product.type}</Badge>
-                  </TableCell>
-                  <TableCell>{product.revenueType}</TableCell>
-                  <TableCell>{product.ssp}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <h3 className="font-medium text-sm leading-tight mb-2 line-clamp-2">{product.name}</h3>
+                <p className="text-sm text-muted-foreground mb-3">{product.charges} charges</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                    High: {product.high}
+                  </Badge>
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Med: {product.med}
+                  </Badge>
+                  <Badge variant="destructive" className="bg-destructive text-destructive-foreground">
+                    Low: {product.low}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -170,211 +170,264 @@ function BillingOverview({ implementation }: OverviewTabProps) {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <div className="lg:col-span-2 space-y-6">
-        <AIRecommendation
-          title="AI Insight"
-          description="Based on similar implementations, consider scheduling the data migration review earlier. Companies in the Technology sector typically need 2 extra days for API integration testing."
-          onAccept={() => console.log('Accepted recommendation')}
-        />
+    <div className="space-y-6">
+      {/* Top Row: AI Chat + Quick Actions & Team side by side */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* AI Chat Panel */}
+        <Card className="flex flex-col">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Ask About This Customer</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col">
+            <AIChatPanelCompact implementation={implementation} />
+          </CardContent>
+        </Card>
 
+        {/* Quick Actions + Team + Key Dates */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <AIWorkflowSettings implementationId={implementation.id} />
+              <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => navigate('/product-catalog')}>
+                <Settings className="mr-2 h-4 w-4 text-secondary" />
+                Configure Products
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Database className="mr-2 h-4 w-4 text-amber-500" />
+                Migrate Data
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <FileText className="mr-2 h-4 w-4 text-purple-500" />
+                View Tasks
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Team & Key Dates Combined */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Team</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-1">
+                  {implementation.team.map((member) => (
+                    <div key={member.id} className="flex items-center gap-1.5 bg-muted/50 rounded-full px-2 py-1">
+                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-[10px] font-medium text-primary">
+                          {member.name.split(' ').map((n) => n[0]).join('')}
+                        </span>
+                      </div>
+                      <span className="text-xs">{member.name.split(' ')[0]}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Key Dates</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kickoff</span>
+                  <span className="font-medium">{formatDate(implementation.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Go-Live</span>
+                  <span className="font-medium">{formatDate(implementation.targetGoLive)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Remaining</span>
+                  <span className="font-medium text-primary">{implementation.daysToGoLive} days</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Recommendation */}
+      <AIRecommendation
+        title="AI Insight"
+        description="Based on similar implementations, consider scheduling the data migration review earlier. Companies in the Technology sector typically need 2 extra days for API integration testing."
+        onAccept={() => console.log('Accepted recommendation')}
+      />
+
+      {/* Bottom Row: Customer Info + Timeline */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Customer Information */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Customer Information</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Customer Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-3">
+            <dl className="grid gap-3 sm:grid-cols-2">
               <div>
-                <dt className="text-sm text-muted-foreground">SFDC Opportunity ID</dt>
-                <dd className="font-medium">{implementation.sfdcOpportunityId}</dd>
+                <dt className="text-xs text-muted-foreground">SFDC Opportunity</dt>
+                <dd className="font-medium text-sm">{implementation.sfdcOpportunityId}</dd>
               </div>
               <div>
-                <dt className="text-sm text-muted-foreground">Industry</dt>
-                <dd className="font-medium">{implementation.industry}</dd>
+                <dt className="text-xs text-muted-foreground">Industry</dt>
+                <dd className="font-medium text-sm">{implementation.industry}</dd>
               </div>
               <div>
-                <dt className="text-sm text-muted-foreground">ARR</dt>
-                <dd className="font-medium text-green-600">
+                <dt className="text-xs text-muted-foreground">ARR</dt>
+                <dd className="font-medium text-sm text-green-600">
                   {implementation.arr ? formatCurrency(implementation.arr) : '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm text-muted-foreground">Business Model</dt>
+                <dt className="text-xs text-muted-foreground">Business Model</dt>
                 <dd>
-                  <Badge variant={
-                    implementation.businessModel === 'hybrid' ? 'default' :
-                    implementation.businessModel === 'subscription' ? 'secondary' : 'outline'
-                  }>
+                  <Badge variant="secondary" className="text-xs">
                     {implementation.businessModel ? businessModelLabels[implementation.businessModel] : '—'}
                   </Badge>
                 </dd>
               </div>
-              <div>
-                <dt className="text-sm text-muted-foreground">Target Go-Live</dt>
-                <dd className="font-medium">{formatDate(implementation.targetGoLive)}</dd>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">Product Types</dt>
+                <dd className="font-medium text-sm">{implementation.productTypes.join(', ')}</dd>
               </div>
-              <div>
-                <dt className="text-sm text-muted-foreground">Product Types</dt>
-                <dd className="font-medium">{implementation.productTypes.join(', ')}</dd>
-              </div>
-              <div className="sm:col-span-3">
-                <dt className="text-sm text-muted-foreground">Project Description</dt>
-                <dd className="font-medium">{implementation.projectDescription || '—'}</dd>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">Description</dt>
+                <dd className="text-sm text-muted-foreground">{implementation.projectDescription || '—'}</dd>
               </div>
             </dl>
           </CardContent>
         </Card>
 
+        {/* Implementation Timeline */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Implementation Timeline</CardTitle>
-            <CardDescription>Current phase: {phases[currentPhaseIndex]?.label}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <Progress value={progress} className="h-2" />
-              
-              <div className="space-y-3">
-                {phases.map((phase) => {
-                  const phaseDate = getPhaseDate(phase.id);
-                  const status = phaseDate?.status || 'pending';
-                  
-                  return (
-                    <div 
-                      key={phase.id} 
-                      className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
-                        status === 'in_progress' ? 'bg-primary/5 border border-primary/20' : 
-                        status === 'completed' ? 'bg-muted/50' : ''
-                      }`}
-                    >
-                      <div className="mt-0.5">
-                        {getStatusIcon(status)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`font-medium ${
-                            status === 'in_progress' ? 'text-primary' : 
-                            status === 'completed' ? 'text-foreground' : 'text-muted-foreground'
-                          }`}>
-                            {phase.label}
-                          </span>
-                          <Badge variant={
-                            status === 'completed' ? 'default' :
-                            status === 'in_progress' ? 'secondary' : 'outline'
-                          } className="text-xs">
-                            {status === 'completed' ? 'Completed' : 
-                             status === 'in_progress' ? 'In Progress' : 'Pending'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                          {phaseDate?.startDate && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              Started: {formatDate(phaseDate.startDate)}
-                            </span>
-                          )}
-                          {phaseDate?.endDate && (
-                            <span className="flex items-center gap-1">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Ended: {formatDate(phaseDate.endDate)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Timeline</CardTitle>
+              <Badge variant="outline" className="text-xs">{phases[currentPhaseIndex]?.label}</Badge>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-6">
-        {/* AI Chat Panel - At the top */}
-        <AIChatPanel implementation={implementation} />
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <Progress value={progress} className="h-1.5 mt-2" />
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3">
-              <AIWorkflowSettings implementationId={implementation.id} />
-              <Button variant="outline" className="justify-start h-auto py-3" onClick={() => navigate('/product-catalog')}>
-                <Settings className="mr-2 h-5 w-5 text-secondary" />
-                <div className="text-left">
-                  <p className="font-medium text-sm">Configure Products</p>
-                  <p className="text-xs text-muted-foreground">Set up catalog</p>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto py-3">
-                <Database className="mr-2 h-5 w-5 text-amber-500" />
-                <div className="text-left">
-                  <p className="font-medium text-sm">Migrate Data</p>
-                  <p className="text-xs text-muted-foreground">Import records</p>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto py-3">
-                <FileText className="mr-2 h-5 w-5 text-purple-500" />
-                <div className="text-left">
-                  <p className="font-medium text-sm">View Tasks</p>
-                  <p className="text-xs text-muted-foreground">5 pending</p>
-                </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Team */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Team Members</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {implementation.team.map((member) => (
-                <div key={member.id} className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">
-                      {member.name.split(' ').map((n) => n[0]).join('')}
+            <div className="space-y-2">
+              {phases.map((phase) => {
+                const phaseDate = getPhaseDate(phase.id);
+                const status = phaseDate?.status || 'pending';
+                
+                return (
+                  <div 
+                    key={phase.id} 
+                    className={`flex items-center gap-2 p-2 rounded-md text-sm ${
+                      status === 'in_progress' ? 'bg-primary/5 border border-primary/20' : 
+                      status === 'completed' ? 'bg-muted/30' : ''
+                    }`}
+                  >
+                    {getStatusIcon(status)}
+                    <span className={`flex-1 ${
+                      status === 'in_progress' ? 'text-primary font-medium' : 
+                      status === 'completed' ? 'text-foreground' : 'text-muted-foreground'
+                    }`}>
+                      {phase.label}
                     </span>
+                    {phaseDate?.startDate && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(phaseDate.startDate)}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{member.name}</p>
-                    <p className="text-xs text-muted-foreground">{member.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Key Dates */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Key Dates</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Kickoff</span>
-                <span className="text-sm font-medium">{formatDate(implementation.createdAt)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Target Go-Live</span>
-                <span className="text-sm font-medium">{formatDate(implementation.targetGoLive)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Days Remaining</span>
-                <span className="text-sm font-medium text-primary">{implementation.daysToGoLive} days</span>
-              </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+// Compact AI Chat for billing view
+function AIChatPanelCompact({ implementation }: { implementation: Implementation }) {
+  const { onboardingType } = useOnboarding();
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: `Hello! Ask me anything about ${implementation.customerName}'s implementation.`,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    },
+  ]);
+
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: chatInput,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setChatInput('');
+
+    setTimeout(() => {
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Based on ${implementation.customerName}'s data, I can help with their ${implementation.businessModel || 'business'} model and ${onboardingType} progress.`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+    }, 1000);
+  };
+
+  return (
+    <>
+      <ScrollArea className="flex-1 pr-2 mb-3" style={{ height: '180px' }}>
+        <div className="space-y-3">
+          {messages.map((message) => (
+            <div key={message.id} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : ''}`}>
+              {message.role === 'assistant' && (
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="h-3 w-3 text-primary" />
+                </div>
+              )}
+              <div className={`max-w-[80%]`}>
+                <div className={`rounded-lg px-3 py-2 text-sm ${
+                  message.role === 'assistant' 
+                    ? 'bg-muted/50 text-foreground' 
+                    : 'bg-primary text-primary-foreground'
+                }`}>
+                  {message.content}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      <div className="flex items-center gap-2 pt-2 border-t">
+        <Input
+          placeholder="Ask a question..."
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+          className="flex-1 h-8 text-sm"
+        />
+        <Button size="sm" className="h-8 w-8 p-0" onClick={handleSendMessage} disabled={!chatInput.trim()}>
+          <Send className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </>
   );
 }
 

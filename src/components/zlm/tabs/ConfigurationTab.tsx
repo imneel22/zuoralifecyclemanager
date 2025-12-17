@@ -189,7 +189,12 @@ export function ConfigurationTab() {
       const updatedCategories = settingCategories.map(cat => {
         if (cat.id === selectedCategory.id) {
           const updatedDetails = [...cat.details];
-          updatedDetails[index] = { ...updatedDetails[index], value: editValue };
+          // Update value and set status to not_configured so user needs to re-configure
+          updatedDetails[index] = { 
+            ...updatedDetails[index], 
+            value: editValue,
+            status: 'not_configured' as SettingStatus
+          };
           return { ...cat, details: updatedDetails };
         }
         return cat;
@@ -199,6 +204,10 @@ export function ConfigurationTab() {
       if (updatedCategory) {
         setSelectedCategory(updatedCategory);
       }
+      toast({
+        title: "Value updated",
+        description: "Please configure the setting to apply changes.",
+      });
     }
     setEditingRow(null);
     setEditValue('');

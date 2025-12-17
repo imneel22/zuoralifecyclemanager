@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Settings, CreditCard, Wallet, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, Pencil, Check, X } from 'lucide-react';
+import { CreditCard, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, Pencil, Check, X, Trash2, MoveRight, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useNavigate } from 'react-router-dom';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface SettingDetail {
+  id: string;
   area: string;
   setting: string;
   value: string;
@@ -37,11 +41,11 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 15,
     status: 'completed',
     details: [
-      { area: 'User Management', setting: 'Max Users', value: '500', derivedValue: 'Enterprise Tier', confidence: 95, rationale: 'Based on current user count and growth rate' },
-      { area: 'User Management', setting: 'Session Timeout', value: '30 minutes', derivedValue: '1800 seconds', confidence: 88, rationale: 'Industry standard for security compliance' },
-      { area: 'Permissions', setting: 'Role Hierarchy', value: 'Admin > Manager > User', confidence: 92, rationale: 'Derived from existing permission structure' },
-      { area: 'Permissions', setting: 'Default Role', value: 'User', confidence: 100, rationale: 'Most common role assignment in system' },
-      { area: 'Security', setting: 'MFA Required', value: 'Yes', derivedValue: 'TOTP', confidence: 85, rationale: 'Compliance requirement detected' },
+      { id: 'admin-1', area: 'User Management', setting: 'Max Users', value: '500', derivedValue: 'Enterprise Tier', confidence: 95, rationale: 'Based on current user count and growth rate' },
+      { id: 'admin-2', area: 'User Management', setting: 'Session Timeout', value: '30 minutes', derivedValue: '1800 seconds', confidence: 88, rationale: 'Industry standard for security compliance' },
+      { id: 'admin-3', area: 'Permissions', setting: 'Role Hierarchy', value: 'Admin > Manager > User', confidence: 92, rationale: 'Derived from existing permission structure' },
+      { id: 'admin-4', area: 'Permissions', setting: 'Default Role', value: 'User', confidence: 100, rationale: 'Most common role assignment in system' },
+      { id: 'admin-5', area: 'Security', setting: 'MFA Required', value: 'Yes', derivedValue: 'TOTP', confidence: 85, rationale: 'Compliance requirement detected' },
     ],
   },
   {
@@ -53,14 +57,14 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 10,
     status: 'completed',
     details: [
-      { area: 'Subscription Settings', setting: 'Term Type', value: 'Termed', derivedValue: 'Fixed Duration', confidence: 94, rationale: 'All subscriptions have defined end dates' },
-      { area: 'Subscription Settings', setting: 'Initial Term', value: '12 months', derivedValue: '365 days', confidence: 91, rationale: 'Most common term length in contracts' },
-      { area: 'Subscription Settings', setting: 'Renewal Term', value: '12 months', derivedValue: '365 days', confidence: 89, rationale: 'Matches initial term pattern' },
-      { area: 'Subscription Settings', setting: 'Auto Renewal', value: 'Enabled', derivedValue: 'true', confidence: 87, rationale: 'Default behavior observed in renewals' },
-      { area: 'Account Settings', setting: 'Invoice Delivery', value: 'Email', confidence: 96, rationale: 'Primary delivery method in customer preferences' },
-      { area: 'Account Settings', setting: 'Payment Terms', value: 'Net 30', derivedValue: '30 days', confidence: 93, rationale: 'Standard payment terms in invoices' },
-      { area: 'Invoice Settings', setting: 'Currency', value: 'USD', derivedValue: 'US Dollar', confidence: 98, rationale: 'Primary currency in all transactions' },
-      { area: 'Invoice Settings', setting: 'Tax Inclusive', value: 'No', derivedValue: 'Tax calculated separately', confidence: 90, rationale: 'Tax line items present on invoices' },
+      { id: 'billing-1', area: 'Subscription Settings', setting: 'Term Type', value: 'Termed', derivedValue: 'Fixed Duration', confidence: 94, rationale: 'All subscriptions have defined end dates' },
+      { id: 'billing-2', area: 'Subscription Settings', setting: 'Initial Term', value: '12 months', derivedValue: '365 days', confidence: 91, rationale: 'Most common term length in contracts' },
+      { id: 'billing-3', area: 'Subscription Settings', setting: 'Renewal Term', value: '12 months', derivedValue: '365 days', confidence: 89, rationale: 'Matches initial term pattern' },
+      { id: 'billing-4', area: 'Subscription Settings', setting: 'Auto Renewal', value: 'Enabled', derivedValue: 'true', confidence: 87, rationale: 'Default behavior observed in renewals' },
+      { id: 'billing-5', area: 'Account Settings', setting: 'Invoice Delivery', value: 'Email', confidence: 96, rationale: 'Primary delivery method in customer preferences' },
+      { id: 'billing-6', area: 'Account Settings', setting: 'Payment Terms', value: 'Net 30', derivedValue: '30 days', confidence: 93, rationale: 'Standard payment terms in invoices' },
+      { id: 'billing-7', area: 'Invoice Settings', setting: 'Currency', value: 'USD', derivedValue: 'US Dollar', confidence: 98, rationale: 'Primary currency in all transactions' },
+      { id: 'billing-8', area: 'Invoice Settings', setting: 'Tax Inclusive', value: 'No', derivedValue: 'Tax calculated separately', confidence: 90, rationale: 'Tax line items present on invoices' },
     ],
   },
   {
@@ -72,11 +76,11 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 8,
     status: 'in_progress',
     details: [
-      { area: 'Gateway Settings', setting: 'Primary Gateway', value: 'Stripe', confidence: 100, rationale: 'Gateway ID detected in payment records' },
-      { area: 'Gateway Settings', setting: 'Retry Attempts', value: '3', derivedValue: 'Max retries', confidence: 82, rationale: 'Common retry pattern observed' },
-      { area: 'Method Settings', setting: 'Accepted Cards', value: 'Visa, MC, Amex', confidence: 95, rationale: 'Card types in successful transactions' },
-      { area: 'Method Settings', setting: 'ACH Enabled', value: 'Yes', confidence: 88, rationale: 'ACH transactions present in data' },
-      { area: 'Processing', setting: 'Settlement Time', value: 'T+2', derivedValue: '2 business days', confidence: 75, rationale: 'Average settlement time calculated' },
+      { id: 'payment-1', area: 'Gateway Settings', setting: 'Primary Gateway', value: 'Stripe', confidence: 100, rationale: 'Gateway ID detected in payment records' },
+      { id: 'payment-2', area: 'Gateway Settings', setting: 'Retry Attempts', value: '3', derivedValue: 'Max retries', confidence: 82, rationale: 'Common retry pattern observed' },
+      { id: 'payment-3', area: 'Method Settings', setting: 'Accepted Cards', value: 'Visa, MC, Amex', confidence: 95, rationale: 'Card types in successful transactions' },
+      { id: 'payment-4', area: 'Method Settings', setting: 'ACH Enabled', value: 'Yes', confidence: 88, rationale: 'ACH transactions present in data' },
+      { id: 'payment-5', area: 'Processing', setting: 'Settlement Time', value: 'T+2', derivedValue: '2 business days', confidence: 75, rationale: 'Average settlement time calculated' },
     ],
   },
   {
@@ -88,12 +92,12 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 20,
     status: 'in_progress',
     details: [
-      { area: 'Revenue Recognition', setting: 'Recognition Method', value: 'Ratable', derivedValue: 'Daily proration', confidence: 92, rationale: 'Revenue spread evenly across term' },
-      { area: 'Revenue Recognition', setting: 'Recognition Start', value: 'Service Start Date', confidence: 88, rationale: 'Revenue begins with service activation' },
-      { area: 'Accounting Period', setting: 'Fiscal Year End', value: 'December', derivedValue: 'Calendar year', confidence: 94, rationale: 'Financial statements follow calendar year' },
-      { area: 'Accounting Period', setting: 'Period Type', value: 'Monthly', confidence: 96, rationale: 'Monthly close process detected' },
-      { area: 'Journal Entry', setting: 'Auto Post', value: 'Enabled', confidence: 85, rationale: 'Journal entries posted automatically' },
-      { area: 'Journal Entry', setting: 'Entry Template', value: 'Standard', confidence: 80, rationale: 'Default template in use' },
+      { id: 'finance-1', area: 'Revenue Recognition', setting: 'Recognition Method', value: 'Ratable', derivedValue: 'Daily proration', confidence: 92, rationale: 'Revenue spread evenly across term' },
+      { id: 'finance-2', area: 'Revenue Recognition', setting: 'Recognition Start', value: 'Service Start Date', confidence: 88, rationale: 'Revenue begins with service activation' },
+      { id: 'finance-3', area: 'Accounting Period', setting: 'Fiscal Year End', value: 'December', derivedValue: 'Calendar year', confidence: 94, rationale: 'Financial statements follow calendar year' },
+      { id: 'finance-4', area: 'Accounting Period', setting: 'Period Type', value: 'Monthly', confidence: 96, rationale: 'Monthly close process detected' },
+      { id: 'finance-5', area: 'Journal Entry', setting: 'Auto Post', value: 'Enabled', confidence: 85, rationale: 'Journal entries posted automatically' },
+      { id: 'finance-6', area: 'Journal Entry', setting: 'Entry Template', value: 'Standard', confidence: 80, rationale: 'Default template in use' },
     ],
   },
   {
@@ -105,12 +109,12 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 6,
     status: 'completed',
     details: [
-      { area: 'Isolation', setting: 'Data Isolation', value: 'Schema-based', confidence: 100, rationale: 'Separate schemas per tenant detected' },
-      { area: 'Isolation', setting: 'Tenant ID Field', value: 'tenant_id', confidence: 100, rationale: 'Field present in all tables' },
-      { area: 'Configuration', setting: 'Branding', value: 'Per-tenant', confidence: 90, rationale: 'Custom logos and colors per tenant' },
-      { area: 'Configuration', setting: 'Feature Flags', value: 'Enabled', confidence: 88, rationale: 'Feature toggles vary by tenant' },
-      { area: 'Limits', setting: 'Storage Quota', value: '100 GB', confidence: 85, rationale: 'Standard allocation per tenant' },
-      { area: 'Limits', setting: 'API Rate Limit', value: '1000/min', confidence: 82, rationale: 'Rate limiting configured per tenant' },
+      { id: 'tenant-1', area: 'Isolation', setting: 'Data Isolation', value: 'Schema-based', confidence: 100, rationale: 'Separate schemas per tenant detected' },
+      { id: 'tenant-2', area: 'Isolation', setting: 'Tenant ID Field', value: 'tenant_id', confidence: 100, rationale: 'Field present in all tables' },
+      { id: 'tenant-3', area: 'Configuration', setting: 'Branding', value: 'Per-tenant', confidence: 90, rationale: 'Custom logos and colors per tenant' },
+      { id: 'tenant-4', area: 'Configuration', setting: 'Feature Flags', value: 'Enabled', confidence: 88, rationale: 'Feature toggles vary by tenant' },
+      { id: 'tenant-5', area: 'Limits', setting: 'Storage Quota', value: '100 GB', confidence: 85, rationale: 'Standard allocation per tenant' },
+      { id: 'tenant-6', area: 'Limits', setting: 'API Rate Limit', value: '1000/min', confidence: 82, rationale: 'Rate limiting configured per tenant' },
     ],
   },
   {
@@ -122,19 +126,20 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 7,
     status: 'pending',
     details: [
-      { area: 'Notifications', setting: 'Email Alerts', value: 'Enabled', confidence: 78, rationale: 'Email notifications configured' },
-      { area: 'Notifications', setting: 'Alert Frequency', value: 'Immediate', confidence: 72, rationale: 'Real-time alerts observed' },
-      { area: 'Preferences', setting: 'Timezone', value: 'UTC', confidence: 65, rationale: 'Default timezone in system' },
+      { id: 'user-1', area: 'Notifications', setting: 'Email Alerts', value: 'Enabled', confidence: 78, rationale: 'Email notifications configured' },
+      { id: 'user-2', area: 'Notifications', setting: 'Alert Frequency', value: 'Immediate', confidence: 72, rationale: 'Real-time alerts observed' },
+      { id: 'user-3', area: 'Preferences', setting: 'Timezone', value: 'UTC', confidence: 65, rationale: 'Default timezone in system' },
     ],
   },
 ];
 
 export function ConfigurationTab() {
-  const navigate = useNavigate();
+  const { toast } = useToast();
   const [settingCategories, setSettingCategories] = useState<SettingCategory[]>(initialSettingCategories);
   const [selectedCategory, setSelectedCategory] = useState<SettingCategory | null>(null);
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -156,7 +161,7 @@ export function ConfigurationTab() {
     return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{confidence}%</Badge>;
   };
 
-  const totalInferred = settingCategories.reduce((sum, cat) => sum + cat.settingsInferred, 0);
+  const totalInferred = settingCategories.reduce((sum, cat) => sum + cat.details.length, 0);
   const totalSettings = settingCategories.reduce((sum, cat) => sum + cat.totalSettings, 0);
 
   const handleStartEdit = (index: number, currentValue: string) => {
@@ -189,14 +194,139 @@ export function ConfigurationTab() {
     setEditValue('');
   };
 
+  const handleToggleRow = (id: string) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const handleToggleAll = () => {
+    if (!selectedCategory) return;
+    if (selectedRows.size === selectedCategory.details.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(selectedCategory.details.map(d => d.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (!selectedCategory) return;
+    const updatedCategories = settingCategories.map(cat => {
+      if (cat.id === selectedCategory.id) {
+        const updatedDetails = cat.details.filter(d => !selectedRows.has(d.id));
+        return { ...cat, details: updatedDetails, settingsInferred: updatedDetails.length };
+      }
+      return cat;
+    });
+    setSettingCategories(updatedCategories);
+    const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+    if (updatedCategory) {
+      setSelectedCategory(updatedCategory);
+    }
+    toast({
+      title: "Settings deleted",
+      description: `${selectedRows.size} setting(s) have been removed.`,
+    });
+    setSelectedRows(new Set());
+  };
+
+  const handleDeleteSingle = (id: string) => {
+    if (!selectedCategory) return;
+    const updatedCategories = settingCategories.map(cat => {
+      if (cat.id === selectedCategory.id) {
+        const updatedDetails = cat.details.filter(d => d.id !== id);
+        return { ...cat, details: updatedDetails, settingsInferred: updatedDetails.length };
+      }
+      return cat;
+    });
+    setSettingCategories(updatedCategories);
+    const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+    if (updatedCategory) {
+      setSelectedCategory(updatedCategory);
+    }
+    toast({
+      title: "Setting deleted",
+      description: "The setting has been removed.",
+    });
+  };
+
+  const handleMoveSelected = (targetCategoryId: string) => {
+    if (!selectedCategory || targetCategoryId === selectedCategory.id) return;
+    
+    const settingsToMove = selectedCategory.details.filter(d => selectedRows.has(d.id));
+    
+    const updatedCategories = settingCategories.map(cat => {
+      if (cat.id === selectedCategory.id) {
+        const updatedDetails = cat.details.filter(d => !selectedRows.has(d.id));
+        return { ...cat, details: updatedDetails, settingsInferred: updatedDetails.length };
+      }
+      if (cat.id === targetCategoryId) {
+        const newDetails = [...cat.details, ...settingsToMove.map(s => ({ ...s, id: `${cat.id}-${Date.now()}-${Math.random()}` }))];
+        return { ...cat, details: newDetails, settingsInferred: newDetails.length };
+      }
+      return cat;
+    });
+    
+    setSettingCategories(updatedCategories);
+    const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+    if (updatedCategory) {
+      setSelectedCategory(updatedCategory);
+    }
+    const targetCategory = updatedCategories.find(cat => cat.id === targetCategoryId);
+    toast({
+      title: "Settings moved",
+      description: `${selectedRows.size} setting(s) moved to ${targetCategory?.title}.`,
+    });
+    setSelectedRows(new Set());
+  };
+
+  const handleMoveSingle = (settingId: string, targetCategoryId: string) => {
+    if (!selectedCategory || targetCategoryId === selectedCategory.id) return;
+    
+    const settingToMove = selectedCategory.details.find(d => d.id === settingId);
+    if (!settingToMove) return;
+    
+    const updatedCategories = settingCategories.map(cat => {
+      if (cat.id === selectedCategory.id) {
+        const updatedDetails = cat.details.filter(d => d.id !== settingId);
+        return { ...cat, details: updatedDetails, settingsInferred: updatedDetails.length };
+      }
+      if (cat.id === targetCategoryId) {
+        const newDetails = [...cat.details, { ...settingToMove, id: `${cat.id}-${Date.now()}` }];
+        return { ...cat, details: newDetails, settingsInferred: newDetails.length };
+      }
+      return cat;
+    });
+    
+    setSettingCategories(updatedCategories);
+    const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+    if (updatedCategory) {
+      setSelectedCategory(updatedCategory);
+    }
+    const targetCategory = updatedCategories.find(cat => cat.id === targetCategoryId);
+    toast({
+      title: "Setting moved",
+      description: `Setting moved to ${targetCategory?.title}.`,
+    });
+  };
+
+  const otherCategories = settingCategories.filter(cat => cat.id !== selectedCategory?.id);
+
   // Detail View
   if (selectedCategory) {
     const Icon = selectedCategory.icon;
+    const allSelected = selectedRows.size === selectedCategory.details.length && selectedCategory.details.length > 0;
+    const someSelected = selectedRows.size > 0;
+
     return (
       <div className="space-y-6">
         {/* Header with Back Button */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedCategory(null)}>
+          <Button variant="ghost" size="icon" onClick={() => { setSelectedCategory(null); setSelectedRows(new Set()); }}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
@@ -213,11 +343,39 @@ export function ConfigurationTab() {
             <Card className="px-4 py-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">{selectedCategory.settingsInferred}/{selectedCategory.totalSettings} Inferred</span>
+                <span className="text-sm font-medium">{selectedCategory.details.length}/{selectedCategory.totalSettings} Inferred</span>
               </div>
             </Card>
           </div>
         </div>
+
+        {/* Bulk Actions Toolbar */}
+        {someSelected && (
+          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+            <span className="text-sm font-medium">{selectedRows.size} selected</span>
+            <div className="h-4 w-px bg-border" />
+            <Select onValueChange={handleMoveSelected}>
+              <SelectTrigger className="w-[180px] h-8">
+                <div className="flex items-center gap-2">
+                  <MoveRight className="h-4 w-4" />
+                  <SelectValue placeholder="Move to..." />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {otherCategories.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedRows(new Set())}>
+              Clear selection
+            </Button>
+          </div>
+        )}
 
         {/* Settings Table */}
         <Card className="flex-1">
@@ -228,17 +386,30 @@ export function ConfigurationTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[18%] pl-6">Area</TableHead>
-                  <TableHead className="w-[18%]">Setting</TableHead>
-                  <TableHead className="w-[20%]">Value</TableHead>
+                  <TableHead className="w-[50px] pl-4">
+                    <Checkbox 
+                      checked={allSelected}
+                      onCheckedChange={handleToggleAll}
+                    />
+                  </TableHead>
+                  <TableHead className="w-[16%]">Area</TableHead>
+                  <TableHead className="w-[16%]">Setting</TableHead>
+                  <TableHead className="w-[18%]">Value</TableHead>
                   <TableHead className="w-[10%]">Confidence</TableHead>
-                  <TableHead className="w-[34%]">Rationale</TableHead>
+                  <TableHead className="w-[30%]">Rationale</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {selectedCategory.details.map((detail, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium pl-6">{detail.area}</TableCell>
+                  <TableRow key={detail.id} className={selectedRows.has(detail.id) ? 'bg-muted/50' : ''}>
+                    <TableCell className="pl-4">
+                      <Checkbox 
+                        checked={selectedRows.has(detail.id)}
+                        onCheckedChange={() => handleToggleRow(detail.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{detail.area}</TableCell>
                     <TableCell>{detail.setting}</TableCell>
                     <TableCell>
                       {editingRow === index ? (
@@ -276,6 +447,38 @@ export function ConfigurationTab() {
                     </TableCell>
                     <TableCell>{getConfidenceBadge(detail.confidence)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{detail.rationale}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                              <MoveRight className="h-4 w-4 mr-2" />
+                              Move to
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="bg-background border shadow-lg z-50">
+                              {otherCategories.map(cat => (
+                                <DropdownMenuItem key={cat.id} onClick={() => handleMoveSingle(detail.id, cat.id)}>
+                                  {cat.title}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteSingle(detail.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -307,7 +510,7 @@ export function ConfigurationTab() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {settingCategories.map((category) => {
           const Icon = category.icon;
-          const inferencePercent = Math.round((category.settingsInferred / category.totalSettings) * 100);
+          const inferencePercent = Math.round((category.details.length / category.totalSettings) * 100);
           
           return (
             <Card 
@@ -333,7 +536,7 @@ export function ConfigurationTab() {
                       <Sparkles className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium">Settings Inferred</span>
                     </div>
-                    <span className="text-lg font-bold text-primary">{category.settingsInferred}</span>
+                    <span className="text-lg font-bold text-primary">{category.details.length}</span>
                   </div>
                   
                   {/* Progress Bar */}
@@ -351,7 +554,7 @@ export function ConfigurationTab() {
                   </div>
                   
                   <p className="text-xs text-muted-foreground text-center">
-                    {category.settingsInferred} of {category.totalSettings} settings configured
+                    {category.details.length} of {category.totalSettings} settings configured
                   </p>
                 </div>
               </CardContent>

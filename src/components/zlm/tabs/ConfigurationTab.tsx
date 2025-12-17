@@ -186,36 +186,28 @@ export function ConfigurationTab() {
         </div>
 
         {/* Settings Table */}
-        <Card>
-          <CardHeader>
+        <Card className="flex-1">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Inferred Settings Details</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px]">Area</TableHead>
-                  <TableHead className="w-[150px]">Setting</TableHead>
-                  <TableHead className="w-[120px]">Value</TableHead>
-                  <TableHead className="w-[120px]">Derived Value</TableHead>
-                  <TableHead className="w-[100px]">Confidence</TableHead>
-                  <TableHead>Rationale</TableHead>
+                  <TableHead className="w-[20%] pl-6">Area</TableHead>
+                  <TableHead className="w-[20%]">Setting</TableHead>
+                  <TableHead className="w-[15%]">Value</TableHead>
+                  <TableHead className="w-[12%]">Confidence</TableHead>
+                  <TableHead className="w-[33%]">Rationale</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {selectedCategory.details.map((detail, index) => (
                   <TableRow key={index}>
-                    <TableCell className="font-medium">{detail.area}</TableCell>
+                    <TableCell className="font-medium pl-6">{detail.area}</TableCell>
                     <TableCell>{detail.setting}</TableCell>
                     <TableCell>
                       <code className="px-2 py-1 bg-muted rounded text-sm">{detail.value}</code>
-                    </TableCell>
-                    <TableCell>
-                      {detail.derivedValue ? (
-                        <span className="text-muted-foreground text-sm">{detail.derivedValue}</span>
-                      ) : (
-                        <span className="text-muted-foreground/50">—</span>
-                      )}
                     </TableCell>
                     <TableCell>{getConfidenceBadge(detail.confidence)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{detail.rationale}</TableCell>

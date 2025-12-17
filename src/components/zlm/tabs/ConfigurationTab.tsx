@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, Pencil, Check, X, Trash2, MoveRight, MoreHorizontal } from 'lucide-react';
+import { CreditCard, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, Pencil, Check, X, Trash2, MoveRight, MoreHorizontal, Download, Settings, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
+type SettingStatus = 'configured' | 'pending' | 'not_configured';
+
 interface SettingDetail {
   id: string;
   area: string;
@@ -18,6 +20,7 @@ interface SettingDetail {
   derivedValue?: string;
   confidence: number;
   rationale: string;
+  status: SettingStatus;
 }
 
 interface SettingCategory {
@@ -41,11 +44,11 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 15,
     status: 'completed',
     details: [
-      { id: 'admin-1', area: 'User Management', setting: 'Max Users', value: '500', derivedValue: 'Enterprise Tier', confidence: 95, rationale: 'Based on current user count and growth rate' },
-      { id: 'admin-2', area: 'User Management', setting: 'Session Timeout', value: '30 minutes', derivedValue: '1800 seconds', confidence: 88, rationale: 'Industry standard for security compliance' },
-      { id: 'admin-3', area: 'Permissions', setting: 'Role Hierarchy', value: 'Admin > Manager > User', confidence: 92, rationale: 'Derived from existing permission structure' },
-      { id: 'admin-4', area: 'Permissions', setting: 'Default Role', value: 'User', confidence: 100, rationale: 'Most common role assignment in system' },
-      { id: 'admin-5', area: 'Security', setting: 'MFA Required', value: 'Yes', derivedValue: 'TOTP', confidence: 85, rationale: 'Compliance requirement detected' },
+      { id: 'admin-1', area: 'User Management', setting: 'Max Users', value: '500', derivedValue: 'Enterprise Tier', confidence: 95, rationale: 'Based on current user count and growth rate', status: 'configured' },
+      { id: 'admin-2', area: 'User Management', setting: 'Session Timeout', value: '30 minutes', derivedValue: '1800 seconds', confidence: 88, rationale: 'Industry standard for security compliance', status: 'configured' },
+      { id: 'admin-3', area: 'Permissions', setting: 'Role Hierarchy', value: 'Admin > Manager > User', confidence: 92, rationale: 'Derived from existing permission structure', status: 'pending' },
+      { id: 'admin-4', area: 'Permissions', setting: 'Default Role', value: 'User', confidence: 100, rationale: 'Most common role assignment in system', status: 'configured' },
+      { id: 'admin-5', area: 'Security', setting: 'MFA Required', value: 'Yes', derivedValue: 'TOTP', confidence: 85, rationale: 'Compliance requirement detected', status: 'not_configured' },
     ],
   },
   {
@@ -57,14 +60,14 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 10,
     status: 'completed',
     details: [
-      { id: 'billing-1', area: 'Subscription Settings', setting: 'Term Type', value: 'Termed', derivedValue: 'Fixed Duration', confidence: 94, rationale: 'All subscriptions have defined end dates' },
-      { id: 'billing-2', area: 'Subscription Settings', setting: 'Initial Term', value: '12 months', derivedValue: '365 days', confidence: 91, rationale: 'Most common term length in contracts' },
-      { id: 'billing-3', area: 'Subscription Settings', setting: 'Renewal Term', value: '12 months', derivedValue: '365 days', confidence: 89, rationale: 'Matches initial term pattern' },
-      { id: 'billing-4', area: 'Subscription Settings', setting: 'Auto Renewal', value: 'Enabled', derivedValue: 'true', confidence: 87, rationale: 'Default behavior observed in renewals' },
-      { id: 'billing-5', area: 'Account Settings', setting: 'Invoice Delivery', value: 'Email', confidence: 96, rationale: 'Primary delivery method in customer preferences' },
-      { id: 'billing-6', area: 'Account Settings', setting: 'Payment Terms', value: 'Net 30', derivedValue: '30 days', confidence: 93, rationale: 'Standard payment terms in invoices' },
-      { id: 'billing-7', area: 'Invoice Settings', setting: 'Currency', value: 'USD', derivedValue: 'US Dollar', confidence: 98, rationale: 'Primary currency in all transactions' },
-      { id: 'billing-8', area: 'Invoice Settings', setting: 'Tax Inclusive', value: 'No', derivedValue: 'Tax calculated separately', confidence: 90, rationale: 'Tax line items present on invoices' },
+      { id: 'billing-1', area: 'Subscription Settings', setting: 'Term Type', value: 'Termed', derivedValue: 'Fixed Duration', confidence: 94, rationale: 'All subscriptions have defined end dates', status: 'configured' },
+      { id: 'billing-2', area: 'Subscription Settings', setting: 'Initial Term', value: '12 months', derivedValue: '365 days', confidence: 91, rationale: 'Most common term length in contracts', status: 'configured' },
+      { id: 'billing-3', area: 'Subscription Settings', setting: 'Renewal Term', value: '12 months', derivedValue: '365 days', confidence: 89, rationale: 'Matches initial term pattern', status: 'pending' },
+      { id: 'billing-4', area: 'Subscription Settings', setting: 'Auto Renewal', value: 'Enabled', derivedValue: 'true', confidence: 87, rationale: 'Default behavior observed in renewals', status: 'configured' },
+      { id: 'billing-5', area: 'Account Settings', setting: 'Invoice Delivery', value: 'Email', confidence: 96, rationale: 'Primary delivery method in customer preferences', status: 'configured' },
+      { id: 'billing-6', area: 'Account Settings', setting: 'Payment Terms', value: 'Net 30', derivedValue: '30 days', confidence: 93, rationale: 'Standard payment terms in invoices', status: 'not_configured' },
+      { id: 'billing-7', area: 'Invoice Settings', setting: 'Currency', value: 'USD', derivedValue: 'US Dollar', confidence: 98, rationale: 'Primary currency in all transactions', status: 'configured' },
+      { id: 'billing-8', area: 'Invoice Settings', setting: 'Tax Inclusive', value: 'No', derivedValue: 'Tax calculated separately', confidence: 90, rationale: 'Tax line items present on invoices', status: 'configured' },
     ],
   },
   {
@@ -76,11 +79,11 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 8,
     status: 'in_progress',
     details: [
-      { id: 'payment-1', area: 'Gateway Settings', setting: 'Primary Gateway', value: 'Stripe', confidence: 100, rationale: 'Gateway ID detected in payment records' },
-      { id: 'payment-2', area: 'Gateway Settings', setting: 'Retry Attempts', value: '3', derivedValue: 'Max retries', confidence: 82, rationale: 'Common retry pattern observed' },
-      { id: 'payment-3', area: 'Method Settings', setting: 'Accepted Cards', value: 'Visa, MC, Amex', confidence: 95, rationale: 'Card types in successful transactions' },
-      { id: 'payment-4', area: 'Method Settings', setting: 'ACH Enabled', value: 'Yes', confidence: 88, rationale: 'ACH transactions present in data' },
-      { id: 'payment-5', area: 'Processing', setting: 'Settlement Time', value: 'T+2', derivedValue: '2 business days', confidence: 75, rationale: 'Average settlement time calculated' },
+      { id: 'payment-1', area: 'Gateway Settings', setting: 'Primary Gateway', value: 'Stripe', confidence: 100, rationale: 'Gateway ID detected in payment records', status: 'configured' },
+      { id: 'payment-2', area: 'Gateway Settings', setting: 'Retry Attempts', value: '3', derivedValue: 'Max retries', confidence: 82, rationale: 'Common retry pattern observed', status: 'pending' },
+      { id: 'payment-3', area: 'Method Settings', setting: 'Accepted Cards', value: 'Visa, MC, Amex', confidence: 95, rationale: 'Card types in successful transactions', status: 'configured' },
+      { id: 'payment-4', area: 'Method Settings', setting: 'ACH Enabled', value: 'Yes', confidence: 88, rationale: 'ACH transactions present in data', status: 'not_configured' },
+      { id: 'payment-5', area: 'Processing', setting: 'Settlement Time', value: 'T+2', derivedValue: '2 business days', confidence: 75, rationale: 'Average settlement time calculated', status: 'pending' },
     ],
   },
   {
@@ -92,12 +95,12 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 20,
     status: 'in_progress',
     details: [
-      { id: 'finance-1', area: 'Revenue Recognition', setting: 'Recognition Method', value: 'Ratable', derivedValue: 'Daily proration', confidence: 92, rationale: 'Revenue spread evenly across term' },
-      { id: 'finance-2', area: 'Revenue Recognition', setting: 'Recognition Start', value: 'Service Start Date', confidence: 88, rationale: 'Revenue begins with service activation' },
-      { id: 'finance-3', area: 'Accounting Period', setting: 'Fiscal Year End', value: 'December', derivedValue: 'Calendar year', confidence: 94, rationale: 'Financial statements follow calendar year' },
-      { id: 'finance-4', area: 'Accounting Period', setting: 'Period Type', value: 'Monthly', confidence: 96, rationale: 'Monthly close process detected' },
-      { id: 'finance-5', area: 'Journal Entry', setting: 'Auto Post', value: 'Enabled', confidence: 85, rationale: 'Journal entries posted automatically' },
-      { id: 'finance-6', area: 'Journal Entry', setting: 'Entry Template', value: 'Standard', confidence: 80, rationale: 'Default template in use' },
+      { id: 'finance-1', area: 'Revenue Recognition', setting: 'Recognition Method', value: 'Ratable', derivedValue: 'Daily proration', confidence: 92, rationale: 'Revenue spread evenly across term', status: 'configured' },
+      { id: 'finance-2', area: 'Revenue Recognition', setting: 'Recognition Start', value: 'Service Start Date', confidence: 88, rationale: 'Revenue begins with service activation', status: 'pending' },
+      { id: 'finance-3', area: 'Accounting Period', setting: 'Fiscal Year End', value: 'December', derivedValue: 'Calendar year', confidence: 94, rationale: 'Financial statements follow calendar year', status: 'configured' },
+      { id: 'finance-4', area: 'Accounting Period', setting: 'Period Type', value: 'Monthly', confidence: 96, rationale: 'Monthly close process detected', status: 'configured' },
+      { id: 'finance-5', area: 'Journal Entry', setting: 'Auto Post', value: 'Enabled', confidence: 85, rationale: 'Journal entries posted automatically', status: 'not_configured' },
+      { id: 'finance-6', area: 'Journal Entry', setting: 'Entry Template', value: 'Standard', confidence: 80, rationale: 'Default template in use', status: 'pending' },
     ],
   },
   {
@@ -109,12 +112,12 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 6,
     status: 'completed',
     details: [
-      { id: 'tenant-1', area: 'Isolation', setting: 'Data Isolation', value: 'Schema-based', confidence: 100, rationale: 'Separate schemas per tenant detected' },
-      { id: 'tenant-2', area: 'Isolation', setting: 'Tenant ID Field', value: 'tenant_id', confidence: 100, rationale: 'Field present in all tables' },
-      { id: 'tenant-3', area: 'Configuration', setting: 'Branding', value: 'Per-tenant', confidence: 90, rationale: 'Custom logos and colors per tenant' },
-      { id: 'tenant-4', area: 'Configuration', setting: 'Feature Flags', value: 'Enabled', confidence: 88, rationale: 'Feature toggles vary by tenant' },
-      { id: 'tenant-5', area: 'Limits', setting: 'Storage Quota', value: '100 GB', confidence: 85, rationale: 'Standard allocation per tenant' },
-      { id: 'tenant-6', area: 'Limits', setting: 'API Rate Limit', value: '1000/min', confidence: 82, rationale: 'Rate limiting configured per tenant' },
+      { id: 'tenant-1', area: 'Isolation', setting: 'Data Isolation', value: 'Schema-based', confidence: 100, rationale: 'Separate schemas per tenant detected', status: 'configured' },
+      { id: 'tenant-2', area: 'Isolation', setting: 'Tenant ID Field', value: 'tenant_id', confidence: 100, rationale: 'Field present in all tables', status: 'configured' },
+      { id: 'tenant-3', area: 'Configuration', setting: 'Branding', value: 'Per-tenant', confidence: 90, rationale: 'Custom logos and colors per tenant', status: 'configured' },
+      { id: 'tenant-4', area: 'Configuration', setting: 'Feature Flags', value: 'Enabled', confidence: 88, rationale: 'Feature toggles vary by tenant', status: 'pending' },
+      { id: 'tenant-5', area: 'Limits', setting: 'Storage Quota', value: '100 GB', confidence: 85, rationale: 'Standard allocation per tenant', status: 'configured' },
+      { id: 'tenant-6', area: 'Limits', setting: 'API Rate Limit', value: '1000/min', confidence: 82, rationale: 'Rate limiting configured per tenant', status: 'configured' },
     ],
   },
   {
@@ -126,9 +129,9 @@ const initialSettingCategories: SettingCategory[] = [
     totalSettings: 7,
     status: 'pending',
     details: [
-      { id: 'user-1', area: 'Notifications', setting: 'Email Alerts', value: 'Enabled', confidence: 78, rationale: 'Email notifications configured' },
-      { id: 'user-2', area: 'Notifications', setting: 'Alert Frequency', value: 'Immediate', confidence: 72, rationale: 'Real-time alerts observed' },
-      { id: 'user-3', area: 'Preferences', setting: 'Timezone', value: 'UTC', confidence: 65, rationale: 'Default timezone in system' },
+      { id: 'user-1', area: 'Notifications', setting: 'Email Alerts', value: 'Enabled', confidence: 78, rationale: 'Email notifications configured', status: 'not_configured' },
+      { id: 'user-2', area: 'Notifications', setting: 'Alert Frequency', value: 'Immediate', confidence: 72, rationale: 'Real-time alerts observed', status: 'pending' },
+      { id: 'user-3', area: 'Preferences', setting: 'Timezone', value: 'UTC', confidence: 65, rationale: 'Default timezone in system', status: 'not_configured' },
     ],
   },
 ];
@@ -140,6 +143,7 @@ export function ConfigurationTab() {
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [configuringId, setConfiguringId] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -149,6 +153,17 @@ export function ConfigurationTab() {
         return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">In Progress</Badge>;
       default:
         return <Badge variant="secondary">Not Started</Badge>;
+    }
+  };
+
+  const getSettingStatusBadge = (status: SettingStatus) => {
+    switch (status) {
+      case 'configured':
+        return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Configured</Badge>;
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pending</Badge>;
+      case 'not_configured':
+        return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Not Configured</Badge>;
     }
   };
 
@@ -314,6 +329,77 @@ export function ConfigurationTab() {
     });
   };
 
+  const handleConfigure = async (detail: SettingDetail) => {
+    setConfiguringId(detail.id);
+    
+    // Simulate API call or workflow trigger
+    toast({
+      title: "Triggering configuration workflow...",
+      description: `Configuring ${detail.setting}`,
+    });
+
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Update status to configured
+    if (selectedCategory) {
+      const updatedCategories = settingCategories.map(cat => {
+        if (cat.id === selectedCategory.id) {
+          const updatedDetails = cat.details.map(d => 
+            d.id === detail.id ? { ...d, status: 'configured' as SettingStatus } : d
+          );
+          return { ...cat, details: updatedDetails };
+        }
+        return cat;
+      });
+      setSettingCategories(updatedCategories);
+      const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+      if (updatedCategory) {
+        setSelectedCategory(updatedCategory);
+      }
+    }
+
+    toast({
+      title: "Configuration complete",
+      description: `${detail.setting} has been configured successfully.`,
+    });
+    setConfiguringId(null);
+  };
+
+  const handleExportCSV = () => {
+    if (!selectedCategory) return;
+
+    const headers = ['Area', 'Setting', 'Value', 'Confidence', 'Status', 'Rationale'];
+    const rows = selectedCategory.details.map(detail => [
+      detail.area,
+      detail.setting,
+      detail.value,
+      `${detail.confidence}%`,
+      detail.status,
+      detail.rationale
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${selectedCategory.title.replace(/\s+/g, '_')}_settings.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export complete",
+      description: `${selectedCategory.title} exported to CSV.`,
+    });
+  };
+
   const otherCategories = settingCategories.filter(cat => cat.id !== selectedCategory?.id);
 
   // Detail View
@@ -339,6 +425,10 @@ export function ConfigurationTab() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
             {getStatusBadge(selectedCategory.status)}
             <Card className="px-4 py-2">
               <div className="flex items-center gap-2">
@@ -386,18 +476,20 @@ export function ConfigurationTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px] pl-4">
+                  <TableHead className="w-[40px] pl-4">
                     <Checkbox 
                       checked={allSelected}
                       onCheckedChange={handleToggleAll}
                     />
                   </TableHead>
-                  <TableHead className="w-[16%]">Area</TableHead>
-                  <TableHead className="w-[16%]">Setting</TableHead>
-                  <TableHead className="w-[18%]">Value</TableHead>
-                  <TableHead className="w-[10%]">Confidence</TableHead>
-                  <TableHead className="w-[30%]">Rationale</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[12%]">Area</TableHead>
+                  <TableHead className="w-[12%]">Setting</TableHead>
+                  <TableHead className="w-[14%]">Value</TableHead>
+                  <TableHead className="w-[8%]">Confidence</TableHead>
+                  <TableHead className="w-[10%]">Status</TableHead>
+                  <TableHead className="w-[22%]">Rationale</TableHead>
+                  <TableHead className="w-[12%]">Action</TableHead>
+                  <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -446,7 +538,39 @@ export function ConfigurationTab() {
                       )}
                     </TableCell>
                     <TableCell>{getConfidenceBadge(detail.confidence)}</TableCell>
+                    <TableCell>{getSettingStatusBadge(detail.status)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{detail.rationale}</TableCell>
+                    <TableCell>
+                      {detail.status === 'configured' ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleStartEdit(index, detail.value)}
+                        >
+                          <Pencil className="h-3.5 w-3.5 mr-1" />
+                          Edit
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => handleConfigure(detail)}
+                          disabled={configuringId === detail.id}
+                        >
+                          {configuringId === detail.id ? (
+                            <>
+                              <Play className="h-3.5 w-3.5 mr-1 animate-pulse" />
+                              Running...
+                            </>
+                          ) : (
+                            <>
+                              <Settings className="h-3.5 w-3.5 mr-1" />
+                              Configure
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

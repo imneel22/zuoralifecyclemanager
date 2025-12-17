@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Settings, CreditCard, Wallet, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, CreditCard, Wallet, PiggyBank, Building2, Users, FileText, Shield, Sparkles, ArrowLeft, Pencil, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +27,7 @@ interface SettingCategory {
   details: SettingDetail[];
 }
 
-const settingCategories: SettingCategory[] = [
+const initialSettingCategories: SettingCategory[] = [
   {
     id: 'admin',
     title: 'Admin Settings',
@@ -130,7 +131,10 @@ const settingCategories: SettingCategory[] = [
 
 export function ConfigurationTab() {
   const navigate = useNavigate();
+  const [settingCategories, setSettingCategories] = useState<SettingCategory[]>(initialSettingCategories);
   const [selectedCategory, setSelectedCategory] = useState<SettingCategory | null>(null);
+  const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -154,6 +158,36 @@ export function ConfigurationTab() {
 
   const totalInferred = settingCategories.reduce((sum, cat) => sum + cat.settingsInferred, 0);
   const totalSettings = settingCategories.reduce((sum, cat) => sum + cat.totalSettings, 0);
+
+  const handleStartEdit = (index: number, currentValue: string) => {
+    setEditingRow(index);
+    setEditValue(currentValue);
+  };
+
+  const handleSaveEdit = (index: number) => {
+    if (selectedCategory) {
+      const updatedCategories = settingCategories.map(cat => {
+        if (cat.id === selectedCategory.id) {
+          const updatedDetails = [...cat.details];
+          updatedDetails[index] = { ...updatedDetails[index], value: editValue };
+          return { ...cat, details: updatedDetails };
+        }
+        return cat;
+      });
+      setSettingCategories(updatedCategories);
+      const updatedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id);
+      if (updatedCategory) {
+        setSelectedCategory(updatedCategory);
+      }
+    }
+    setEditingRow(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRow(null);
+    setEditValue('');
+  };
 
   // Detail View
   if (selectedCategory) {
@@ -194,11 +228,11 @@ export function ConfigurationTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[20%] pl-6">Area</TableHead>
-                  <TableHead className="w-[20%]">Setting</TableHead>
-                  <TableHead className="w-[15%]">Value</TableHead>
-                  <TableHead className="w-[12%]">Confidence</TableHead>
-                  <TableHead className="w-[33%]">Rationale</TableHead>
+                  <TableHead className="w-[18%] pl-6">Area</TableHead>
+                  <TableHead className="w-[18%]">Setting</TableHead>
+                  <TableHead className="w-[20%]">Value</TableHead>
+                  <TableHead className="w-[10%]">Confidence</TableHead>
+                  <TableHead className="w-[34%]">Rationale</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,7 +241,38 @@ export function ConfigurationTab() {
                     <TableCell className="font-medium pl-6">{detail.area}</TableCell>
                     <TableCell>{detail.setting}</TableCell>
                     <TableCell>
-                      <code className="px-2 py-1 bg-muted rounded text-sm">{detail.value}</code>
+                      {editingRow === index ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="h-8 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEdit(index);
+                              if (e.key === 'Escape') handleCancelEdit();
+                            }}
+                          />
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleSaveEdit(index)}>
+                            <Check className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelEdit}>
+                            <X className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 group/value">
+                          <code className="px-2 py-1 bg-muted rounded text-sm">{detail.value}</code>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-7 w-7 opacity-0 group-hover/value:opacity-100 transition-opacity"
+                            onClick={() => handleStartEdit(index, detail.value)}
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>{getConfidenceBadge(detail.confidence)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{detail.rationale}</TableCell>

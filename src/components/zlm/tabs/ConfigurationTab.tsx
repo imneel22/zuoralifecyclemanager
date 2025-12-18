@@ -713,12 +713,15 @@ export function ConfigurationTab() {
                             </Button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 group/value">
-                            <Badge variant="outline" className="text-muted-foreground/60 border-muted-foreground/30">N/A</Badge>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover/value:opacity-100 transition-opacity" onClick={() => handleStartEdit(index, detail.defaultValue)}>
-                              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                            </Button>
-                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs border-dashed border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                            onClick={() => handleStartEdit(index, detail.defaultValue)}
+                          >
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Set Value
+                          </Button>
                         )
                       )}
                     </TableCell>

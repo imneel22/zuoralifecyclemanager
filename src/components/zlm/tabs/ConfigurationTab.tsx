@@ -645,16 +645,36 @@ export function ConfigurationTab() {
                       {detail.isInferred ? (
                         editingRow === index ? (
                           <div className="flex items-center gap-2">
-                            <Input
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              className="h-8 text-sm"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveEdit(index);
-                                if (e.key === 'Escape') handleCancelEdit();
-                              }}
-                            />
+                            <Select value={editValue} onValueChange={setEditValue}>
+                              <SelectTrigger className="h-8 text-sm w-[180px]">
+                                <SelectValue placeholder="Select value" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border shadow-lg z-50">
+                                <SelectItem value={detail.value}>
+                                  <span className="flex items-center gap-2">
+                                    <Sparkles className="h-3 w-3 text-primary" />
+                                    {detail.value}
+                                    <span className="text-xs text-muted-foreground">(Inferred)</span>
+                                  </span>
+                                </SelectItem>
+                                {detail.defaultValue !== detail.value && (
+                                  <SelectItem value={detail.defaultValue}>
+                                    <span className="flex items-center gap-2">
+                                      {detail.defaultValue}
+                                      <span className="text-xs text-muted-foreground">(Default)</span>
+                                    </span>
+                                  </SelectItem>
+                                )}
+                                {detail.derivedValue && detail.derivedValue !== detail.value && detail.derivedValue !== detail.defaultValue && (
+                                  <SelectItem value={detail.derivedValue}>
+                                    <span className="flex items-center gap-2">
+                                      {detail.derivedValue}
+                                      <span className="text-xs text-muted-foreground">(Derived)</span>
+                                    </span>
+                                  </SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
                             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleSaveEdit(index)}>
                               <Check className="h-4 w-4 text-green-600" />
                             </Button>

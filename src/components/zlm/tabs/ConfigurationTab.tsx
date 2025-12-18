@@ -288,12 +288,12 @@ export function ConfigurationTab() {
 
   const handleToggleAll = () => {
     if (!selectedCategory) return;
-    const inferredDetails = selectedCategory.details.filter(d => d.isInferred);
-    const allInferredSelected = inferredDetails.every(d => selectedRows.has(d.id));
-    if (allInferredSelected) {
+    const allDetails = selectedCategory.details;
+    const allSelected = allDetails.every(d => selectedRows.has(d.id));
+    if (allSelected) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(inferredDetails.map(d => d.id)));
+      setSelectedRows(new Set(allDetails.map(d => d.id)));
     }
   };
 
@@ -518,7 +518,7 @@ export function ConfigurationTab() {
   if (selectedCategory) {
     const Icon = selectedCategory.icon;
     const inferredDetails = selectedCategory.details.filter(d => d.isInferred);
-    const allInferredSelected = inferredDetails.length > 0 && inferredDetails.every(d => selectedRows.has(d.id));
+    const allSelected = selectedCategory.details.length > 0 && selectedCategory.details.every(d => selectedRows.has(d.id));
     const someSelected = selectedRows.size > 0;
 
     return (
@@ -603,7 +603,7 @@ export function ConfigurationTab() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[40px] pl-4">
-                    <Checkbox checked={allInferredSelected} onCheckedChange={handleToggleAll} />
+                    <Checkbox checked={allSelected} onCheckedChange={handleToggleAll} />
                   </TableHead>
                   <TableHead className="w-[10%]">Area</TableHead>
                   <TableHead className="w-[10%]">Setting</TableHead>
@@ -620,21 +620,20 @@ export function ConfigurationTab() {
                 {selectedCategory.details.map((detail, index) => (
                   <TableRow 
                     key={detail.id} 
-                    className={`${selectedRows.has(detail.id) ? 'bg-muted/50' : ''} ${!detail.isInferred ? 'opacity-60 bg-muted/20' : ''}`}
+                    className={`${selectedRows.has(detail.id) ? 'bg-muted/50' : ''} ${!detail.isInferred ? 'bg-muted/10' : ''}`}
                   >
                     <TableCell className="pl-4">
                       <Checkbox 
                         checked={selectedRows.has(detail.id)} 
                         onCheckedChange={() => handleToggleRow(detail.id)} 
-                        disabled={!detail.isInferred}
                       />
                     </TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         {!detail.isInferred && (
-                          <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
+                          <AlertCircle className="h-3.5 w-3.5 text-amber-500/70" />
                         )}
-                        {detail.area}
+                        <span className={!detail.isInferred ? 'text-muted-foreground' : ''}>{detail.area}</span>
                       </div>
                     </TableCell>
                     <TableCell className={!detail.isInferred ? 'text-muted-foreground' : ''}>{detail.setting}</TableCell>
@@ -691,14 +690,43 @@ export function ConfigurationTab() {
                           </div>
                         )
                       ) : (
-                        <span className="text-muted-foreground/50 text-sm italic">Not available</span>
+                        editingRow === index ? (
+                          <div className="flex items-center gap-2">
+                            <Select value={editValue} onValueChange={setEditValue}>
+                              <SelectTrigger className="h-8 text-sm w-[180px]">
+                                <SelectValue placeholder="Select value" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border shadow-lg z-50">
+                                <SelectItem value={detail.defaultValue}>
+                                  <span className="flex items-center gap-2">
+                                    {detail.defaultValue}
+                                    <span className="text-xs text-muted-foreground">(Default)</span>
+                                  </span>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleSaveEdit(index)}>
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelEdit}>
+                              <X className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 group/value">
+                            <Badge variant="outline" className="text-muted-foreground/60 border-muted-foreground/30">N/A</Badge>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover/value:opacity-100 transition-opacity" onClick={() => handleStartEdit(index, detail.defaultValue)}>
+                              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        )
                       )}
                     </TableCell>
                     <TableCell>
                       {detail.isInferred ? (
                         getConfidenceBadge(detail.confidence)
                       ) : (
-                        <Badge variant="outline" className="text-muted-foreground/50 border-muted-foreground/30">N/A</Badge>
+                        <Badge variant="outline" className="text-muted-foreground/60 border-muted-foreground/30">N/A</Badge>
                       )}
                     </TableCell>
                     <TableCell>{getSettingStatusBadge(detail.status)}</TableCell>
@@ -726,16 +754,23 @@ export function ConfigurationTab() {
                           </Button>
                         )
                       ) : (
-                        <Button variant="outline" size="sm" disabled className="opacity-50">
-                          <AlertCircle className="h-3.5 w-3.5 mr-1" />
-                          Pending AI
-                        </Button>
+                        detail.status === 'configured' ? (
+                          <Button variant="outline" size="sm" onClick={() => handleStartEdit(index, detail.defaultValue)}>
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                        ) : (
+                          <Button variant="secondary" size="sm" onClick={() => handleStartEdit(index, detail.defaultValue)}>
+                            <Settings className="h-3.5 w-3.5 mr-1" />
+                            Set Value
+                          </Button>
+                        )
                       )}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!detail.isInferred}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

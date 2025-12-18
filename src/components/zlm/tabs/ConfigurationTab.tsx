@@ -203,6 +203,7 @@ export function ConfigurationTab() {
   const [configuringId, setConfiguringId] = useState<string | null>(null);
   const [configDialog, setConfigDialog] = useState<{ open: boolean; detail: SettingDetail | null; valueSource: ValueSource }>({ open: false, detail: null, valueSource: 'inferred' });
   const [bulkConfigDialog, setBulkConfigDialog] = useState<{ open: boolean; valueSource: ValueSource }>({ open: false, valueSource: 'inferred' });
+  const [confidenceFilter, setConfidenceFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -586,14 +587,53 @@ export function ConfigurationTab() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">All Settings ({selectedCategory.totalSettings})</CardTitle>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span>AI Inferred ({inferredDetails.length})</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
+                  <Button 
+                    variant={confidenceFilter === 'all' ? 'secondary' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => setConfidenceFilter('all')}
+                  >
+                    All
+                  </Button>
+                  <Button 
+                    variant={confidenceFilter === 'high' ? 'secondary' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => setConfidenceFilter('high')}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-green-500 mr-1.5" />
+                    High (90%+)
+                  </Button>
+                  <Button 
+                    variant={confidenceFilter === 'medium' ? 'secondary' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => setConfidenceFilter('medium')}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5" />
+                    Medium (75-89%)
+                  </Button>
+                  <Button 
+                    variant={confidenceFilter === 'low' ? 'secondary' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => setConfidenceFilter('low')}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-red-500 mr-1.5" />
+                    Low (&lt;75%)
+                  </Button>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
-                  <span>Pending Analysis ({selectedCategory.totalSettings - inferredDetails.length})</span>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span>AI Inferred ({inferredDetails.length})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
+                    <span>Pending Analysis ({selectedCategory.totalSettings - inferredDetails.length})</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -617,7 +657,16 @@ export function ConfigurationTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {selectedCategory.details.map((detail, index) => (
+                {selectedCategory.details
+                  .filter(detail => {
+                    if (confidenceFilter === 'all') return true;
+                    if (!detail.isInferred) return confidenceFilter === 'low'; // Non-inferred shown in low filter
+                    if (confidenceFilter === 'high') return detail.confidence >= 90;
+                    if (confidenceFilter === 'medium') return detail.confidence >= 75 && detail.confidence < 90;
+                    if (confidenceFilter === 'low') return detail.confidence < 75;
+                    return true;
+                  })
+                  .map((detail, index) => (
                   <TableRow 
                     key={detail.id} 
                     className={`${selectedRows.has(detail.id) ? 'bg-muted/50' : ''} ${!detail.isInferred ? 'bg-muted/10' : ''}`}
